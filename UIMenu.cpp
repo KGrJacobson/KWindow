@@ -18,6 +18,11 @@ UIMenu::UIMenu()
 
 UIMenu::~UIMenu()
 {
+	for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != optionlist_.begin(); ++it)
+	{
+		delete (*it);
+	}
+
 	optionlist_.clear();
 	ResetMenu();
 }
@@ -32,10 +37,7 @@ void UIMenu::ResetMenu()
 	buttonpressed_ = NO_CONTEXT_MENU_BUTTONS_PRESSED;
 	menuarea_ = SDL_Rect{ 0, 0, 0, 0 };
 
-	for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != optionlist_.end(); ++it)
-	{
-		(*it)->RemoveMouseHandler();
-	}
+	RemoveMouseHandler();
 }
 
 void UIMenu::AddListItem(UIButton *newitem)
@@ -112,5 +114,21 @@ void UIMenu::ResizeList(unsigned int size)
 		{
 			optionlist_.push_back(new UIButton(optionlist_[0]->GetButtonArea(), "", true));
 		}
+	}
+}
+
+void UIMenu::RemoveMouseHandler()
+{
+	for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != optionlist_.begin(); ++it)
+	{
+		(*it)->RemoveMouseHandler();
+	}
+}
+
+void UIMenu::AddMouseHandler(int numberofelementstoshow)
+{
+	for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != ((numberofelementstoshow == -1) ? optionlist_.end() : optionlist_.begin() + numberofelementstoshow); ++it)
+	{
+		(*it)->SetMouseHandler();
 	}
 }

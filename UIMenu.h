@@ -26,6 +26,8 @@ public:
 	void ShowMenu(int numberofelementstoshow);
 	SDL_Rect GetMenuArea();
 	void ResizeList(unsigned int size);
+	void RemoveMouseHandler();
+	void AddMouseHandler(int numberofelementstoshow);
 private:
 	SDL_Rect menuarea_;
 	std::vector<UIButton*> optionlist_;

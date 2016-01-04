@@ -43,6 +43,7 @@ public:
 	void KeyDownInputJapaneseKatakana(const SDL_Event &e);
 	void CreateKanjiFindMenu(std::string kana);
 	void ShowMenu();
+	void CloseMenu();
 	void KeyUpInput(const SDL_Event &e);
 	TextInput *GetTexture();
 private:

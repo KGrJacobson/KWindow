@@ -25,15 +25,15 @@ KeyboardEntry::KeyboardEntry()
 	kanjimenu_.push_back(UIMenu());  //Names
 
 	//Menu starts off screen to prevent an invisible Mouse Handler from existing in the active screen.
-	menux_ = SDLUtility::GetScreenWidth();
+	menux_ = 0;
 	menuy_ = 0;
 
 	//The first item of each menu is always the input given
 	jpime_.Init();
-	kanjimenu_[Japanese_IME::ONYOMI].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "O", true));
-	kanjimenu_[Japanese_IME::KUNYOMI].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "K", true));
-	kanjimenu_[Japanese_IME::NAME].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "N", true));
-	ismenuactive_ = false;
+	kanjimenu_[Japanese_IME::ONYOMI].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "O", true));
+	kanjimenu_[Japanese_IME::KUNYOMI].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "K", true));
+	kanjimenu_[Japanese_IME::NAME].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "N", true));
+	CloseMenu();
 
 	hiraganamap_ = std::unordered_map<std::string, std::string>({
 		//Syllabograms ending in 'a'
@@ -281,6 +281,7 @@ void KeyboardEntry::FinalizeCurrentText()
 
 	currenttext_ = "";
 	tempstring_ = "";
+	CloseMenu();
 }
 
 int KeyboardEntry::KeyDownInput(const SDL_Event &e)
@@ -465,6 +466,9 @@ char KeyboardEntry::KeyDownInputEnglish(const SDL_Event &e)
 
 void KeyboardEntry::KeyDownInputJapaneseHiragana(const SDL_Event &e)
 {
+	if (ismenuactive_ == true)
+		CloseMenu();
+
 	switch (e.key.keysym.sym)
 	{
 	case SDLK_a:
@@ -988,8 +992,11 @@ void KeyboardEntry::KeyDownInputJapaneseHiragana(const SDL_Event &e)
 		nexttempchar_ = "";
 		break;
 	case SDLK_TAB:
-		CreateKanjiFindMenu(tempstring_ + nexttempchar_);
-		ismenuactive_ = true;
+		if (tempstring_ != "" || nexttempchar_ != "")
+		{
+			CreateKanjiFindMenu(tempstring_ + nexttempchar_);
+			ismenuactive_ = true;
+		}
 		break;
 	}
 }
@@ -2327,6 +2334,8 @@ void KeyboardEntry::CreateKanjiFindMenu(std::string kana)
 
 void KeyboardEntry::ShowMenu()
 {
+	bool closemenu = false;
+
 	if (ismenuactive_ == true)
 	{
 		std::vector<std::string> onlist = jpime_.GetKanji(tempstring_ + nexttempchar_, Japanese_IME::ONYOMI);
@@ -2335,17 +2344,62 @@ void KeyboardEntry::ShowMenu()
 
 		SDL_Rect currentmenuarea;
 
-		kanjimenu_[Japanese_IME::ONYOMI].SetXY(menux_, menuy_);
-		kanjimenu_[Japanese_IME::ONYOMI].ShowMenu(onlist.size());
-		currentmenuarea = kanjimenu_[Japanese_IME::ONYOMI].GetMenuArea();
+		if (kanjimenu_[Japanese_IME::ONYOMI].GetButtonPress() != -1 && kanjimenu_[Japanese_IME::ONYOMI].GetButtonPress() != 0)
+		{
+			tempstring_ = "";
+			nexttempchar_ = "";
+			InsertString(onlist[kanjimenu_[Japanese_IME::ONYOMI].GetButtonPress() - 1]);
+			closemenu = true;
+		}
+		
+		if (kanjimenu_[Japanese_IME::KUNYOMI].GetButtonPress() != -1 && kanjimenu_[Japanese_IME::KUNYOMI].GetButtonPress() != 0)
+		{
+			tempstring_ = "";
+			nexttempchar_ = "";
+			InsertString(onlist[kanjimenu_[Japanese_IME::KUNYOMI].GetButtonPress() - 1]);
+			closemenu = true;
+		}
+		
+		if (kanjimenu_[Japanese_IME::NAME].GetButtonPress() != -1 && kanjimenu_[Japanese_IME::NAME].GetButtonPress() != 0)
+		{
+			tempstring_ = "";
+			nexttempchar_ = "";
+			InsertString(onlist[kanjimenu_[Japanese_IME::NAME].GetButtonPress() - 1]);
+			closemenu = true;
+		}
 
-		kanjimenu_[Japanese_IME::KUNYOMI].SetXY(menux_ + currentmenuarea.w, menuy_);
-		kanjimenu_[Japanese_IME::KUNYOMI].ShowMenu(kunlist.size());
-		currentmenuarea = kanjimenu_[Japanese_IME::KUNYOMI].GetMenuArea();
+		if (onlist.size() != 0)
+		{
+			kanjimenu_[Japanese_IME::ONYOMI].SetXY(menux_, menuy_);
+			kanjimenu_[Japanese_IME::ONYOMI].ShowMenu(onlist.size() + 1);
+			currentmenuarea = kanjimenu_[Japanese_IME::ONYOMI].GetMenuArea();
+		}
 
-		kanjimenu_[Japanese_IME::NAME].SetXY(menux_ + (currentmenuarea.w * 2), menuy_);
-		kanjimenu_[Japanese_IME::NAME].ShowMenu(namelist.size());
+
+		if (kunlist.size() != 0)
+		{
+			kanjimenu_[Japanese_IME::KUNYOMI].SetXY(currentmenuarea.x + currentmenuarea.w, menuy_);
+			kanjimenu_[Japanese_IME::KUNYOMI].ShowMenu(kunlist.size() + 1);
+			currentmenuarea = kanjimenu_[Japanese_IME::KUNYOMI].GetMenuArea();
+		}
+
+		if (namelist.size() != 0)
+		{
+			kanjimenu_[Japanese_IME::NAME].SetXY(currentmenuarea.x + currentmenuarea.w, menuy_);
+			kanjimenu_[Japanese_IME::NAME].ShowMenu(namelist.size() + 1);
+		}
 	}
+
+	if (closemenu == true)
+		CloseMenu();
+}
+
+void KeyboardEntry::CloseMenu()
+{
+	kanjimenu_[Japanese_IME::ONYOMI].ResetMenu();
+	kanjimenu_[Japanese_IME::KUNYOMI].ResetMenu();
+	kanjimenu_[Japanese_IME::NAME].ResetMenu();
+	ismenuactive_ = false;
 }
 
 void KeyboardEntry::KeyUpInput(const SDL_Event &e)
