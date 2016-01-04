@@ -44,17 +44,23 @@ void UIMenu::AddListItem(UIButton *newitem)
 	newitem->RemoveMouseHandler();
 }
 
+void UIMenu::RenameListItem(int button, std::string newname)
+{
+	optionlist_[button]->SetButtonText(newname);
+}
+
 void UIMenu::SetXY(int x, int y)
 {
 	int nextx = x;
 	int nexty = y;
+	int menuelementwidth = optionlist_[0]->GetButtonArea().w;
 	int numberofelements = 0;
 
 	for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != optionlist_.end(); ++it)
 	{
 		if (numberofelements >= STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN)
 		{
-			nextx = nextx + STANDARD_CONTEXT_MENU_WIDTH;
+			nextx = nextx + menuelementwidth;
 			nexty = y;
 			numberofelements = 0;
 		}
@@ -70,15 +76,15 @@ void UIMenu::SetXY(int x, int y)
 	menuarea_ = SDL_Rect{
 		x,
 		y,
-		(optionlist_.size() < STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN) ? STANDARD_CONTEXT_MENU_WIDTH : 1 + static_cast<int>(static_cast<double>(optionlist_.size()) / STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN ) * STANDARD_CONTEXT_MENU_WIDTH,
+		(optionlist_.size() < STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN) ? menuelementwidth : 1 + static_cast<int>(static_cast<double>(optionlist_.size()) / STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN ) * menuelementwidth,
 		(optionlist_.size() < STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN) ? nexty - y : STANDARD_CONTEXT_MENU_HEIGHT * STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN
 	};
 }
 
-void UIMenu::ShowMenu()
+void UIMenu::ShowMenu(int numberofelementstoshow)
 {
 	int currentbutton = 0;
-	for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != optionlist_.end(); ++it)
+	for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != ((numberofelementstoshow == -1) ? optionlist_.end() : optionlist_.begin() + numberofelementstoshow); ++it)
 	{
 		UIElements::ShowUIContextMenu((*it));
 
@@ -94,4 +100,17 @@ void UIMenu::ShowMenu()
 SDL_Rect UIMenu::GetMenuArea()
 {
 	return menuarea_;
+}
+
+void UIMenu::ResizeList(unsigned int size)
+{
+	if (size > optionlist_.size())
+	{
+		int numberofnewelements = size - optionlist_.size();
+
+		for (int newelement = 0; newelement < numberofnewelements; ++newelement)
+		{
+			optionlist_.push_back(new UIButton(optionlist_[0]->GetButtonArea(), "", true));
+		}
+	}
 }

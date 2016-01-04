@@ -5,6 +5,8 @@
 #include "SDL_ttf.h"
 
 #include "DebugText.h"
+#include "InputHandler.h"
+#include "JPIME.h"
 #include "NetworkUtility.h"
 #include "SDLUtility.h"
 #include "UIElements.h"
@@ -45,7 +47,9 @@ int SDLUtility::Init()
 		return -1;
 	}
 
+
 	UIElements::Init();
+	InputHandler::Init();
 
 	return 0;
 }

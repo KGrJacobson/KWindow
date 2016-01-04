@@ -5,7 +5,11 @@
 
 #include "DebugText.h"
 #include "KeyboardEntry.h"
+#include "JPIME.h"
 #include "TextInput.h"
+#include "UIButton.h"
+#include "UIElements.h"
+#include "UIMenu.h"
 
 KeyboardEntry::KeyboardEntry()
 {
@@ -16,9 +20,137 @@ KeyboardEntry::KeyboardEntry()
 	tempstring_ = "";
 	nexttempchar_ = "";
 
+	kanjimenu_.push_back(UIMenu());  //Onyomi
+	kanjimenu_.push_back(UIMenu());  //Kunyomi
+	kanjimenu_.push_back(UIMenu());  //Names
+
+	//Menu starts off screen to prevent an invisible Mouse Handler from existing in the active screen.
+	menux_ = SDLUtility::GetScreenWidth();
+	menuy_ = 0;
+
+	//The first item of each menu is always the input given
+	jpime_.Init();
+	kanjimenu_[Japanese_IME::ONYOMI].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "O", true));
+	kanjimenu_[Japanese_IME::KUNYOMI].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "K", true));
+	kanjimenu_[Japanese_IME::NAME].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "N", true));
+	ismenuactive_ = false;
+
 	hiraganamap_ = std::unordered_map<std::string, std::string>({
-		{ "sh",  u8"‚µ‚á" },
-		{ "",  u8"" },
+		//Syllabograms ending in 'a'
+		{ "a",  u8"‚ " },
+		{ "ka",  u8"‚©" },
+		{ "sa",  u8"‚³" },
+		{ "ta",  u8"‚½" },
+		{ u8"‚ña",  u8"‚È" },
+		{ "ha",  u8"‚Í" },
+		{ "ma",  u8"‚Ü" },
+		{ "ya",  u8"‚â" },
+		{ "ra",  u8"‚ç" },
+		{ "wa",  u8"‚í" },
+		{ "kya",  u8"‚«‚á" },
+		{ "sha",  u8"‚µ‚á" },
+		{ "cha",  u8"‚¿‚á" },
+		{ u8"‚ñya",  u8"‚É‚á" },
+		{ "hya",  u8"‚Ð‚á" },
+		{ "mya",  u8"‚Ý‚á" },
+		{ "rya",  u8"‚è‚á" },
+		{ "ga",  u8"‚ª" },
+		{ "za",  u8"‚´" },
+		{ "da",  u8"‚¾" },
+		{ "ba",  u8"‚Î" },
+		{ "pa",  u8"‚Ï" },
+		{ "gya",  u8"‚¬‚á" },
+		{ "ja",  u8"‚¶‚á" },
+		{ "dya",  u8"‚À‚á" },
+		{ "bya",  u8"‚Ñ‚á" },
+		{ "pya",  u8"‚Ò‚á" },
+
+		//Syllabograms ending in 'i'
+		{ "i",  u8"‚¢" },
+		{ "ki",  u8"‚«" },
+		{ u8"‚ñi",  u8"‚É" },
+		{ "hi",  u8"‚Ð" },
+		{ "mi",  u8"‚Ý" },
+		{ "ri",  u8"‚è" },
+		{ "wi",  u8"‚î" },
+		{ "shi",  u8"‚µ" },
+		{ "chi",  u8"‚¿" },
+		{ "gi",  u8"‚¬" },
+		{ "di",  u8"‚À" },
+		{ "bi",  u8"‚Ñ" },
+		{ "pi",  u8"‚Ò" },
+		{ "ji",  u8"‚¶" },
+		
+		//Syllabograms ending in 'u'
+		{ "u",  u8"‚¤" },
+		{ "ku",  u8"‚­" },
+		{ "su",  u8"‚·" },
+		{ "tsu",  u8"‚Â" },
+		{ u8"‚ñu",  u8"‚Ê" },
+		{ "fu",  u8"‚Ó" },
+		{ "mu",  u8"‚Þ" },
+		{ "yu",  u8"‚ä" },
+		{ "ru",  u8"‚é" },
+		{ "kyu",  u8"‚«‚ã" },
+		{ "shu",  u8"‚µ‚ã" },
+		{ "chu",  u8"‚¿‚ã" },
+		{ u8"‚ñyu",  u8"‚É‚ã" },
+		{ "hyu",  u8"‚Ð‚ã" },
+		{ "myu",  u8"‚Ý‚ã" },
+		{ "ryu",  u8"‚è‚ã" },
+		{ "gu",  u8"‚®" },
+		{ "zu",  u8"‚¸" },
+		{ "du",  u8"‚Ã" },
+		{ "bu",  u8"‚Ô" },
+		{ "pu",  u8"‚Õ" },
+		{ "gyu",  u8"‚¬‚ã" },
+		{ "ju",  u8"‚¶‚ã" },
+		{ "byu",  u8"‚Ñ‚ã" },
+		{ "pyu",  u8"‚Ò‚ã" },
+
+		//Syllabograms ending in 'e'
+		{ "e",  u8"‚¦" },
+		{ "ke",  u8"‚¯" },
+		{ "se",  u8"‚¹" },
+		{ "te",  u8"‚Ä" },
+		{ u8"‚ñe",  u8"‚Ë" },
+		{ "he",  u8"‚Ö" },
+		{ "me",  u8"‚ß" },
+		{ "re",  u8"‚ê" },
+		{ "we",  u8"‚ï" },
+		{ "ge",  u8"‚°" },
+		{ "ze",  u8"‚º" },
+		{ "de",  u8"‚Å" },
+		{ "be",  u8"‚×" },
+		{ "pe",  u8"‚Ø" },
+
+		//Syllabograms ending in 'o'
+		{ "o",  u8"‚¨" },
+		{ "ko",  u8"‚±" },
+		{ "so",  u8"‚»" },
+		{ "to",  u8"‚Æ" },
+		{ u8"‚ño",  u8"‚Ì" },
+		{ "ho",  u8"‚Ù" },
+		{ "mo",  u8"‚à" },
+		{ "yo",  u8"‚æ" },
+		{ "ro",  u8"‚ë" },
+		{ "wo",  u8"‚ð" },
+		{ "kyo",  u8"‚«‚å" },
+		{ "sho",  u8"‚µ‚å" },
+		{ "cho",  u8"‚¿‚å" },
+		{ u8"‚ñyo",  u8"‚É‚å" },
+		{ "hyo",  u8"‚Ð‚å" },
+		{ "myo",  u8"‚Ý‚å" },
+		{ "ryo",  u8"‚è‚å" },
+		{ "go",  u8"‚²" },
+		{ "zo",  u8"‚¼" },
+		{ "do",  u8"‚Ç" },
+		{ "bo",  u8"‚Ú" },
+		{ "po",  u8"‚Û" },
+		{ "gyo",  u8"‚¬‚å" },
+		{ "jo",  u8"‚¶‚å" },
+		{ "byo",  u8"‚Ñ‚å" },
+		{ "pyo",  u8"‚Ò‚å" }
 	});
 }
 
@@ -120,8 +252,11 @@ void KeyboardEntry::DeleteCharacter()
 			currenttexttexture_->CreateQuickTextureFromText(currenttext_ + '[' + tempstring_ + nexttempchar_ + ']');
 }
 
-void KeyboardEntry::SetTexture(TextInput *text)
+void KeyboardEntry::SetTexture(TextInput *text, int textx, int textlowesty)
 {
+	menux_ = textx;
+	menuy_ = textlowesty;
+
 	FinalizeCurrentText();
 
 	currenttexttexture_ = text;
@@ -335,207 +470,12 @@ void KeyboardEntry::KeyDownInputJapaneseHiragana(const SDL_Event &e)
 	case SDLK_a:
 		if ((std::string("sh ch hy by d gy j ky my py ry t w z").find(nexttempchar_) != std::string::npos || std::string(u8"‚ñy").find(nexttempchar_) != std::string::npos) && nexttempchar_ != "")
 		{
-			if (nexttempchar_ == "sh")
-			{
-				tempstring_ = tempstring_ + hiraganamap_[nexttempchar_];
-				nexttempchar_ = "";
-			}
-			else
-			{
-				if (nexttempchar_ == "ch")
-				{
-					tempstring_ = tempstring_ + u8"‚¿‚á";
-					nexttempchar_ = "";
-				}
-				else
-				{
-					if (nexttempchar_ == "s")
-					{
-						tempstring_ = tempstring_ + u8"‚³";
-						nexttempchar_ = "";
-					}
-					else
-					{
-						if (nexttempchar_ == "h")
-						{
-							tempstring_ = tempstring_ + u8"‚Í";
-							nexttempchar_ = "";
-						}
-						else
-						{
-							if (nexttempchar_ == "b")
-							{
-								tempstring_ = tempstring_ + u8"‚Î";
-								nexttempchar_ = "";
-							}
-							else
-							{
-								if (nexttempchar_ == "d")
-								{
-									tempstring_ = tempstring_ + u8"‚¾";
-									nexttempchar_ = "";
-								}
-								else
-								{
-									if (nexttempchar_ == "g")
-									{
-										tempstring_ = tempstring_ + u8"‚ª";
-										nexttempchar_ = "";
-									}
-									else
-									{
-										if (nexttempchar_ == "j")
-										{
-											tempstring_ = tempstring_ + u8"‚¶‚á";
-											nexttempchar_ = "";
-										}
-										else
-										{
-											if (nexttempchar_ == "k")
-											{
-												tempstring_ = tempstring_ + u8"‚©";
-												nexttempchar_ = "";
-											}
-											else
-											{
-												if (nexttempchar_ == "m")
-												{
-													tempstring_ = tempstring_ + u8"‚Ü";
-													nexttempchar_ = "";
-												}
-												else
-												{
-													if (nexttempchar_ == "p")
-													{
-														tempstring_ = tempstring_ + u8"‚Ï";
-														nexttempchar_ = "";
-													}
-													else
-													{
-														if (nexttempchar_ == "r")
-														{
-															tempstring_ = tempstring_ + u8"‚ç";
-															nexttempchar_ = "";
-														}
-														else
-														{
-															if (nexttempchar_ == "t")
-															{
-																tempstring_ = tempstring_ + u8"‚½";
-																nexttempchar_ = "";
-															}
-															else
-															{
-																if (nexttempchar_ == "w")
-																{
-																	tempstring_ = tempstring_ + u8"‚í";
-																	nexttempchar_ = "";
-																}
-																else
-																{
-																	if (nexttempchar_ == "y")
-																	{
-																		tempstring_ = tempstring_ + u8"‚â";
-																		nexttempchar_ = "";
-																	}
-																	else
-																	{
-																		if (nexttempchar_ == "z")
-																		{
-																			tempstring_ = tempstring_ + u8"‚´";
-																			nexttempchar_ = "";
-																		}
-																		else
-																		{
-																			if (nexttempchar_ == u8"‚ñ")
-																			{
-																				tempstring_ = tempstring_ + u8"‚È";
-																				nexttempchar_ = "";
-																			}
-																			else
-																			{
-																				if (nexttempchar_ == "hy")
-																				{
-																					tempstring_ = tempstring_ + u8"‚Ð‚á";
-																					nexttempchar_ = "";
-																				}
-																				else
-																				{
-																					if (nexttempchar_ == "ky")
-																					{
-																						tempstring_ = tempstring_ + u8"‚«‚á";
-																						nexttempchar_ = "";
-																					}
-																					else
-																					{
-																						if (nexttempchar_ == "my")
-																						{
-																							tempstring_ = tempstring_ + u8"‚Ý‚á";
-																							nexttempchar_ = "";
-																						}
-																						else
-																						{
-																							if (nexttempchar_ == "ry")
-																							{
-																								tempstring_ = tempstring_ + u8"‚è‚á";
-																								nexttempchar_ = "";
-																							}
-																							else
-																							{
-																								if (nexttempchar_ == u8"‚ñy")
-																								{
-																									tempstring_ = tempstring_ + u8"‚É‚á";
-																									nexttempchar_ = "";
-																								}
-																								else
-																								{
-																									if (nexttempchar_ == "gy")
-																									{
-																										tempstring_ = tempstring_ + u8"‚¬‚á";
-																										nexttempchar_ = "";
-																									}
-																									else
-																									{
-																										if (nexttempchar_ == "by")
-																										{
-																											tempstring_ = tempstring_ + u8"‚Ñ‚á";
-																											nexttempchar_ = "";
-																										}
-																										else
-																										{
-																											if (nexttempchar_ == "py")
-																											{
-																												tempstring_ = tempstring_ + u8"‚Ò‚á";
-																												nexttempchar_ = "";
-																											}
-																										}
-																									}
-																								}
-																							}
-																						}
-																					}
-																				}
-																			}
-																		}
-																	}
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+			tempstring_ = tempstring_ + hiraganamap_[nexttempchar_ + 'a'];
+			nexttempchar_ = "";
 		}
 		else
 		{
-			tempstring_ = tempstring_ + nexttempchar_ + u8"‚ ";
+			tempstring_ = tempstring_ + nexttempchar_ + hiraganamap_["a"];
 			nexttempchar_ = "";
 		}
 		break;
@@ -605,111 +545,12 @@ void KeyboardEntry::KeyDownInputJapaneseHiragana(const SDL_Event &e)
 	case SDLK_e:
 		if ((std::string("s h b d g j k m p r t w z").find(nexttempchar_) != std::string::npos || std::string(u8"‚ñy").find(nexttempchar_) != std::string::npos) && nexttempchar_ != "")
 		{
-			if (nexttempchar_ == "s")
-			{
-				tempstring_ = tempstring_ + u8"‚¹";
-				nexttempchar_ = "";
-			}
-			else
-			{
-				if (nexttempchar_ == "h")
-				{
-					tempstring_ = tempstring_ + u8"‚Ö";
-					nexttempchar_ = "";
-				}
-				else
-				{
-					if (nexttempchar_ == "b")
-					{
-						tempstring_ = tempstring_ + u8"‚×";
-						nexttempchar_ = "";
-					}
-					else
-					{
-						if (nexttempchar_ == "d")
-						{
-							tempstring_ = tempstring_ + u8"‚Å";
-							nexttempchar_ = "";
-						}
-						else
-						{
-							if (nexttempchar_ == "g")
-							{
-								tempstring_ = tempstring_ + u8"‚°";
-								nexttempchar_ = "";
-							}
-							else
-							{
-								if (nexttempchar_ == "k")
-								{
-									tempstring_ = tempstring_ + u8"‚¯";
-									nexttempchar_ = "";
-								}
-								else
-								{
-									if (nexttempchar_ == "m")
-									{
-										tempstring_ = tempstring_ + u8"‚ß";
-										nexttempchar_ = "";
-									}
-									else
-									{
-										if (nexttempchar_ == "p")
-										{
-											tempstring_ = tempstring_ + u8"‚Ø";
-											nexttempchar_ = "";
-										}
-										else
-										{
-											if (nexttempchar_ == "r")
-											{
-												tempstring_ = tempstring_ + u8"‚ê";
-												nexttempchar_ = "";
-											}
-											else
-											{
-												if (nexttempchar_ == "t")
-												{
-													tempstring_ = tempstring_ + u8"‚Ä";
-													nexttempchar_ = "";
-												}
-												else
-												{
-													if (nexttempchar_ == "w")
-													{
-														tempstring_ = tempstring_ + u8"‚ï";
-														nexttempchar_ = "";
-													}
-													else
-													{
-														if (nexttempchar_ == "z")
-														{
-															tempstring_ = tempstring_ + u8"‚º";
-															nexttempchar_ = "";
-														}
-														else
-														{
-															if (nexttempchar_ == u8"‚ñ")
-															{
-																tempstring_ = tempstring_ + u8"‚Ë";
-																nexttempchar_ = "";
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+			tempstring_ = tempstring_ + hiraganamap_[nexttempchar_ + 'e'];
+			nexttempchar_ = "";
 		}
 		else
 		{
-			tempstring_ = tempstring_ + nexttempchar_ + u8"‚¦";
+			tempstring_ = tempstring_ + nexttempchar_ + hiraganamap_["e"];
 			nexttempchar_ = "";
 		}
 		break;
@@ -788,119 +629,12 @@ void KeyboardEntry::KeyDownInputJapaneseHiragana(const SDL_Event &e)
 	case SDLK_i:
 		if ((std::string("sh ch b d g j k m p r t w z").find(nexttempchar_) != std::string::npos || std::string(u8"‚ñy").find(nexttempchar_) != std::string::npos) && nexttempchar_ != "")
 		{
-			if (nexttempchar_ == "sh")
-			{
-				tempstring_ = tempstring_ + u8"‚µ";
-				nexttempchar_ = "";
-			}
-			else
-			{
-				if (nexttempchar_ == "h")
-				{
-					tempstring_ = tempstring_ + u8"‚Ð";
-					nexttempchar_ = "";
-				}
-				else
-				{
-					if (nexttempchar_ == "b")
-					{
-						tempstring_ = tempstring_ + u8"‚Ñ";
-						nexttempchar_ = "";
-					}
-					else
-					{
-						if (nexttempchar_ == "d")
-						{
-							tempstring_ = tempstring_ + u8"‚À";
-							nexttempchar_ = "";
-						}
-						else
-						{
-							if (nexttempchar_ == "g")
-							{
-								tempstring_ = tempstring_ + u8"‚¬";
-								nexttempchar_ = "";
-							}
-							else
-							{
-								if (nexttempchar_ == "k")
-								{
-									tempstring_ = tempstring_ + u8"‚«";
-									nexttempchar_ = "";
-								}
-								else
-								{
-									if (nexttempchar_ == "m")
-									{
-										tempstring_ = tempstring_ + u8"‚Ý";
-										nexttempchar_ = "";
-									}
-									else
-									{
-										if (nexttempchar_ == "p")
-										{
-											tempstring_ = tempstring_ + u8"‚Ò";
-											nexttempchar_ = "";
-										}
-										else
-										{
-											if (nexttempchar_ == "r")
-											{
-												tempstring_ = tempstring_ + u8"‚è";
-												nexttempchar_ = "";
-											}
-											else
-											{
-												if (nexttempchar_ == "t")
-												{
-													tempstring_ = tempstring_ + u8"‚¿";
-													nexttempchar_ = "";
-												}
-												else
-												{
-													if (nexttempchar_ == "w")
-													{
-														tempstring_ = tempstring_ + u8"‚î";
-														nexttempchar_ = "";
-													}
-													else
-													{
-														if (nexttempchar_ == "z")
-														{
-															tempstring_ = tempstring_ + u8"‚¶";
-															nexttempchar_ = "";
-														}
-														else
-														{
-															if (nexttempchar_ == u8"‚ñ")
-															{
-																tempstring_ = tempstring_ + u8"‚É";
-																nexttempchar_ = "";
-															}
-															else
-															{
-																if (nexttempchar_ == "ch")
-																{
-																	tempstring_ = tempstring_ + u8"‚¿";
-																	nexttempchar_ = "";
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+			tempstring_ = tempstring_ + hiraganamap_[nexttempchar_ + 'i'];
+			nexttempchar_ = "";
 		}
 		else
 		{
-			tempstring_ = tempstring_ + nexttempchar_ + u8"‚¢";
+			tempstring_ = tempstring_ + nexttempchar_ + hiraganamap_["i"];
 			nexttempchar_ = "";
 		}
 		break;
@@ -991,207 +725,12 @@ void KeyboardEntry::KeyDownInputJapaneseHiragana(const SDL_Event &e)
 	case SDLK_o:
 		if ((std::string("sh ch hy by d gy j ky my py ry t w z").find(nexttempchar_) != std::string::npos || std::string(u8"‚ñy").find(nexttempchar_) != std::string::npos) && nexttempchar_ != "")
 		{
-			if (nexttempchar_ == "sh")
-			{
-				tempstring_ = tempstring_ + u8"‚µ‚å";
-				nexttempchar_ = "";
-			}
-			else
-			{
-				if (nexttempchar_ == "ch")
-				{
-					tempstring_ = tempstring_ + u8"‚¿‚å";
-					nexttempchar_ = "";
-				}
-				else
-				{
-					if (nexttempchar_ == "s")
-					{
-						tempstring_ = tempstring_ + u8"‚»";
-						nexttempchar_ = "";
-					}
-					else
-					{
-						if (nexttempchar_ == "h")
-						{
-							tempstring_ = tempstring_ + u8"‚Ù";
-							nexttempchar_ = "";
-						}
-						else
-						{
-							if (nexttempchar_ == "b")
-							{
-								tempstring_ = tempstring_ + u8"‚Ú";
-								nexttempchar_ = "";
-							}
-							else
-							{
-								if (nexttempchar_ == "d")
-								{
-									tempstring_ = tempstring_ + u8"‚Ç";
-									nexttempchar_ = "";
-								}
-								else
-								{
-									if (nexttempchar_ == "g")
-									{
-										tempstring_ = tempstring_ + u8"‚²";
-										nexttempchar_ = "";
-									}
-									else
-									{
-										if (nexttempchar_ == "j")
-										{
-											tempstring_ = tempstring_ + u8"‚¶‚å";
-											nexttempchar_ = "";
-										}
-										else
-										{
-											if (nexttempchar_ == "k")
-											{
-												tempstring_ = tempstring_ + u8"‚±";
-												nexttempchar_ = "";
-											}
-											else
-											{
-												if (nexttempchar_ == "m")
-												{
-													tempstring_ = tempstring_ + u8"‚à";
-													nexttempchar_ = "";
-												}
-												else
-												{
-													if (nexttempchar_ == "p")
-													{
-														tempstring_ = tempstring_ + u8"‚Û";
-														nexttempchar_ = "";
-													}
-													else
-													{
-														if (nexttempchar_ == "r")
-														{
-															tempstring_ = tempstring_ + u8"‚ë";
-															nexttempchar_ = "";
-														}
-														else
-														{
-															if (nexttempchar_ == "t")
-															{
-																tempstring_ = tempstring_ + u8"‚Æ";
-																nexttempchar_ = "";
-															}
-															else
-															{
-																if (nexttempchar_ == "w")
-																{
-																	tempstring_ = tempstring_ + u8"‚ð";
-																	nexttempchar_ = "";
-																}
-																else
-																{
-																	if (nexttempchar_ == "y")
-																	{
-																		tempstring_ = tempstring_ + u8"‚æ";
-																		nexttempchar_ = "";
-																	}
-																	else
-																	{
-																		if (nexttempchar_ == "z")
-																		{
-																			tempstring_ = tempstring_ + u8"‚¼";
-																			nexttempchar_ = "";
-																		}
-																		else
-																		{
-																			if (nexttempchar_ == u8"‚ñ")
-																			{
-																				tempstring_ = tempstring_ + u8"‚Ì";
-																				nexttempchar_ = "";
-																			}
-																			else
-																			{
-																				if (nexttempchar_ == "hy")
-																				{
-																					tempstring_ = tempstring_ + u8"‚Ð‚å";
-																					nexttempchar_ = "";
-																				}
-																				else
-																				{
-																					if (nexttempchar_ == "ky")
-																					{
-																						tempstring_ = tempstring_ + u8"‚«‚å";
-																						nexttempchar_ = "";
-																					}
-																					else
-																					{
-																						if (nexttempchar_ == "my")
-																						{
-																							tempstring_ = tempstring_ + u8"‚Ý‚å";
-																							nexttempchar_ = "";
-																						}
-																						else
-																						{
-																							if (nexttempchar_ == "ry")
-																							{
-																								tempstring_ = tempstring_ + u8"‚è‚å";
-																								nexttempchar_ = "";
-																							}
-																							else
-																							{
-																								if (nexttempchar_ == u8"‚ñy")
-																								{
-																									tempstring_ = tempstring_ + u8"‚É‚å";
-																									nexttempchar_ = "";
-																								}
-																								else
-																								{
-																									if (nexttempchar_ == "gy")
-																									{
-																										tempstring_ = tempstring_ + u8"‚¬‚å";
-																										nexttempchar_ = "";
-																									}
-																									else
-																									{
-																										if (nexttempchar_ == "by")
-																										{
-																											tempstring_ = tempstring_ + u8"‚Ñ‚å";
-																											nexttempchar_ = "";
-																										}
-																										else
-																										{
-																											if (nexttempchar_ == "py")
-																											{
-																												tempstring_ = tempstring_ + u8"‚Ò‚å";
-																												nexttempchar_ = "";
-																											}
-																										}
-																									}
-																								}
-																							}
-																						}
-																					}
-																				}
-																			}
-																		}
-																	}
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+			tempstring_ = tempstring_ + hiraganamap_[nexttempchar_ + 'o'];
+			nexttempchar_ = "";
 		}
 		else
 		{
-			tempstring_ = tempstring_ + nexttempchar_ + u8"‚¨";
+			tempstring_ = tempstring_ + nexttempchar_ + hiraganamap_["o"];
 			nexttempchar_ = "";
 		}
 		break;
@@ -1289,199 +828,12 @@ void KeyboardEntry::KeyDownInputJapaneseHiragana(const SDL_Event &e)
 	case SDLK_u:
 		if ((std::string("sh ch hy by d gy j ky my py ry ts w z f").find(nexttempchar_) != std::string::npos || std::string(u8"‚ñy").find(nexttempchar_) != std::string::npos) && nexttempchar_ != "")
 		{
-			if (nexttempchar_ == "sh")
-			{
-				tempstring_ = tempstring_ + u8"‚µ‚ã";
-				nexttempchar_ = "";
-			}
-			else
-			{
-				if (nexttempchar_ == "ch")
-				{
-					tempstring_ = tempstring_ + u8"‚¿‚ã";
-					nexttempchar_ = "";
-				}
-				else
-				{
-					if (nexttempchar_ == "s")
-					{
-						tempstring_ = tempstring_ + u8"‚·";
-						nexttempchar_ = "";
-					}
-					else
-					{
-						if (nexttempchar_ == "f")
-						{
-							tempstring_ = tempstring_ + u8"‚Ó";
-							nexttempchar_ = "";
-						}
-						else
-						{
-							if (nexttempchar_ == "b")
-							{
-								tempstring_ = tempstring_ + u8"‚Ô";
-								nexttempchar_ = "";
-							}
-							else
-							{
-								if (nexttempchar_ == "d")
-								{
-									tempstring_ = tempstring_ + u8"‚Ã";
-									nexttempchar_ = "";
-								}
-								else
-								{
-									if (nexttempchar_ == "g")
-									{
-										tempstring_ = tempstring_ + u8"‚®";
-										nexttempchar_ = "";
-									}
-									else
-									{
-										if (nexttempchar_ == "j")
-										{
-											tempstring_ = tempstring_ + u8"‚¶‚ã";
-											nexttempchar_ = "";
-										}
-										else
-										{
-											if (nexttempchar_ == "k")
-											{
-												tempstring_ = tempstring_ + u8"‚­";
-												nexttempchar_ = "";
-											}
-											else
-											{
-												if (nexttempchar_ == "m")
-												{
-													tempstring_ = tempstring_ + u8"‚Þ";
-													nexttempchar_ = "";
-												}
-												else
-												{
-													if (nexttempchar_ == "p")
-													{
-														tempstring_ = tempstring_ + u8"‚Õ";
-														nexttempchar_ = "";
-													}
-													else
-													{
-														if (nexttempchar_ == "r")
-														{
-															tempstring_ = tempstring_ + u8"‚é";
-															nexttempchar_ = "";
-														}
-														else
-														{
-															if (nexttempchar_ == "ts")
-															{
-																tempstring_ = tempstring_ + u8"‚Â";
-																nexttempchar_ = "";
-															}
-															else
-															{
-																if (nexttempchar_ == "y")
-																{
-																	tempstring_ = tempstring_ + u8"‚ä";
-																	nexttempchar_ = "";
-																}
-																else
-																{
-																	if (nexttempchar_ == "z")
-																	{
-																		tempstring_ = tempstring_ + u8"‚¸";
-																		nexttempchar_ = "";
-																	}
-																	else
-																	{
-																		if (nexttempchar_ == u8"‚ñ")
-																		{
-																			tempstring_ = tempstring_ + u8"‚Ê";
-																			nexttempchar_ = "";
-																		}
-																		else
-																		{
-																			if (nexttempchar_ == "hy")
-																			{
-																				tempstring_ = tempstring_ + u8"‚Ð‚ã";
-																				nexttempchar_ = "";
-																			}
-																			else
-																			{
-																				if (nexttempchar_ == "ky")
-																				{
-																					tempstring_ = tempstring_ + u8"‚«‚ã";
-																					nexttempchar_ = "";
-																				}
-																				else
-																				{
-																					if (nexttempchar_ == "my")
-																					{
-																						tempstring_ = tempstring_ + u8"‚Ý‚ã";
-																						nexttempchar_ = "";
-																					}
-																					else
-																					{
-																						if (nexttempchar_ == "ry")
-																						{
-																							tempstring_ = tempstring_ + u8"‚è‚ã";
-																							nexttempchar_ = "";
-																						}
-																						else
-																						{
-																							if (nexttempchar_ == u8"‚ñy")
-																							{
-																								tempstring_ = tempstring_ + u8"‚É‚ã";
-																								nexttempchar_ = "";
-																							}
-																							else
-																							{
-																								if (nexttempchar_ == "gy")
-																								{
-																									tempstring_ = tempstring_ + u8"‚¬‚ã";
-																									nexttempchar_ = "";
-																								}
-																								else
-																								{
-																									if (nexttempchar_ == "by")
-																									{
-																										tempstring_ = tempstring_ + u8"‚Ñ‚ã";
-																										nexttempchar_ = "";
-																									}
-																									else
-																									{
-																										if (nexttempchar_ == "py")
-																										{
-																											tempstring_ = tempstring_ + u8"‚Ò‚ã";
-																											nexttempchar_ = "";
-																										}
-																									}
-																								}
-																							}
-																						}
-																					}
-																				}
-																			}
-																		}
-																	}
-																}
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+			tempstring_ = tempstring_ + hiraganamap_[nexttempchar_ + 'u'];
+			nexttempchar_ = "";
 		}
 		else
 		{
-			tempstring_ = tempstring_ + nexttempchar_ + u8"‚¤";
+			tempstring_ = tempstring_ + nexttempchar_ + hiraganamap_["u"];
 			nexttempchar_ = "";
 		}
 		break;
@@ -1635,10 +987,14 @@ void KeyboardEntry::KeyDownInputJapaneseHiragana(const SDL_Event &e)
 		tempstring_ = "";
 		nexttempchar_ = "";
 		break;
+	case SDLK_TAB:
+		CreateKanjiFindMenu(tempstring_ + nexttempchar_);
+		ismenuactive_ = true;
+		break;
 	}
 }
 
-void KeyboardEntry::KeyDownInputJapaneseKatakana(const SDL_Event & e)
+void KeyboardEntry::KeyDownInputJapaneseKatakana(const SDL_Event &e)
 {
 	switch (e.key.keysym.sym)
 	{
@@ -2945,6 +2301,50 @@ void KeyboardEntry::KeyDownInputJapaneseKatakana(const SDL_Event & e)
 		tempstring_ = "";
 		nexttempchar_ = "";
 		break;
+	}
+}
+
+void KeyboardEntry::CreateKanjiFindMenu(std::string kana)
+{
+	std::vector<std::string> onlist = jpime_.GetKanji(kana, Japanese_IME::ONYOMI);
+	std::vector<std::string> kunlist = jpime_.GetKanji(kana, Japanese_IME::KUNYOMI);
+	std::vector<std::string> namelist = jpime_.GetKanji(kana, Japanese_IME::NAME);
+	kanjimenu_[Japanese_IME::ONYOMI].RenameListItem(0, kana);
+	kanjimenu_[Japanese_IME::KUNYOMI].RenameListItem(0, kana);
+	kanjimenu_[Japanese_IME::NAME].RenameListItem(0, kana);
+
+	kanjimenu_[Japanese_IME::ONYOMI].ResizeList(onlist.size() + 1);
+	kanjimenu_[Japanese_IME::KUNYOMI].ResizeList(kunlist.size() + 1);
+	kanjimenu_[Japanese_IME::NAME].ResizeList(namelist.size() + 1);
+
+	int vectorindex = 1;
+	for (int element = 0; element != onlist.size(); ++element)
+	{
+		kanjimenu_[Japanese_IME::ONYOMI].RenameListItem(vectorindex, onlist[element]);
+		++vectorindex;
+	}
+}
+
+void KeyboardEntry::ShowMenu()
+{
+	if (ismenuactive_ == true)
+	{
+		std::vector<std::string> onlist = jpime_.GetKanji(tempstring_ + nexttempchar_, Japanese_IME::ONYOMI);
+		std::vector<std::string> kunlist = jpime_.GetKanji(tempstring_ + nexttempchar_, Japanese_IME::KUNYOMI);
+		std::vector<std::string> namelist = jpime_.GetKanji(tempstring_ + nexttempchar_, Japanese_IME::NAME);
+
+		SDL_Rect currentmenuarea;
+
+		kanjimenu_[Japanese_IME::ONYOMI].SetXY(menux_, menuy_);
+		kanjimenu_[Japanese_IME::ONYOMI].ShowMenu(onlist.size());
+		currentmenuarea = kanjimenu_[Japanese_IME::ONYOMI].GetMenuArea();
+
+		kanjimenu_[Japanese_IME::KUNYOMI].SetXY(menux_ + currentmenuarea.w, menuy_);
+		kanjimenu_[Japanese_IME::KUNYOMI].ShowMenu(kunlist.size());
+		currentmenuarea = kanjimenu_[Japanese_IME::KUNYOMI].GetMenuArea();
+
+		kanjimenu_[Japanese_IME::NAME].SetXY(menux_ + (currentmenuarea.w * 2), menuy_);
+		kanjimenu_[Japanese_IME::NAME].ShowMenu(namelist.size());
 	}
 }
 

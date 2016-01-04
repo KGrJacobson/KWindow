@@ -45,6 +45,11 @@ bool UIButton::IsTextCentered()
 	return centertext_;
 }
 
+void UIButton::SetButtonText(std::string text)
+{
+	buttontext_.CreateTextureFromText(text);
+}
+
 void UIButton::SetButtonArea(SDL_Rect newarea)
 {
 	absolutecoordinatesrect_ = newarea;

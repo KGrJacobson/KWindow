@@ -11,6 +11,11 @@
 #include "TextInput.h"
 #include "UIElements.h"
 
+void InputHandler::Init()
+{
+	Input_Handler_Inputs::keyboardentry_ = new KeyboardEntry();
+}
+
 void InputHandler::CloseInputs()
 {
 	delete Input_Handler_Inputs::keyboardentry_;
@@ -106,9 +111,9 @@ void InputHandler::CheckMouseHandlers()
 		Input_Handler_Inputs::mouseevent_ = MOUSEOVER;
 }
 
-void InputHandler::SetKeyboardEntryTexture(TextInput *textinput)
+void InputHandler::SetKeyboardEntryTexture(TextInput *textinput, int textx, int textlowesty)
 {
-	Input_Handler_Inputs::keyboardentry_->SetTexture(textinput);
+	Input_Handler_Inputs::keyboardentry_->SetTexture(textinput, textx, textlowesty);
 }
 
 bool InputHandler::IsKeyboardEntryNull()
@@ -150,4 +155,9 @@ int InputHandler::GetCurrentMouseState(int mouseevent_, bool isdown)
 	}
 
 	return NO_MOUSE_STATE;
+}
+
+void InputHandler::ShowKeyboardInputMenu()
+{
+	Input_Handler_Inputs::keyboardentry_->ShowMenu();
 }

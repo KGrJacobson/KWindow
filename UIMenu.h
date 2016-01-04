@@ -21,9 +21,11 @@ public:
 	int GetButtonPress();
 	void ResetMenu();
 	void AddListItem(UIButton *newitem);
+	void RenameListItem(int button, std::string newname);
 	void SetXY(int x, int y);
-	void ShowMenu();
+	void ShowMenu(int numberofelementstoshow);
 	SDL_Rect GetMenuArea();
+	void ResizeList(unsigned int size);
 private:
 	SDL_Rect menuarea_;
 	std::vector<UIButton*> optionlist_;

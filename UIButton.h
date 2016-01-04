@@ -18,6 +18,7 @@ public:
 	SDL_Rect GetButtonArea();
 	TextInput *GetText();
 	bool IsTextCentered();
+	void SetButtonText(std::string text);
 	void SetButtonArea(SDL_Rect destrect);
 	void SetButtonCoordinates(int x, int y);
 	void SetMouseHandler();

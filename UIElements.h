@@ -27,8 +27,13 @@ class UIElements
 {
 public:
 	static const int STANDARD_UI_FONT_SIZE = 10;
+
+	static const int STANDARD_TINY_BUTTON_WIDTH = 20;
+	static const int STANDARD_TINY_BUTTON_HEIGHT = 20;
+
 	static const int STANDARD_MENU_WIDTH = 75;
 	static const int STANDARD_MENU_HEIGHT = 20;
+	
 	static const int STANDARD_TAB_WIDTH = 100;
 	static const int STANDARD_TAB_HEIGHT = 20;
 
