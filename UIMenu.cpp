@@ -25,7 +25,6 @@ UIMenu::~UIMenu()
 
 	optionlist_.clear();
 	ResetMenu();
-	mouseactive_ = false;
 }
 
 int UIMenu::GetButtonPress()
@@ -120,23 +119,8 @@ void UIMenu::ResizeList(unsigned int size, int fontsize)
 
 void UIMenu::RemoveMouseHandler()
 {
-	if (mouseactive_ == true)
+	for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != optionlist_.end(); ++it)
 	{
-		for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != optionlist_.begin(); ++it)
-		{
-			(*it)->RemoveMouseHandler();
-		}
-
-		mouseactive_ = false;
+		(*it)->RemoveMouseHandler();
 	}
-}
-
-void UIMenu::AddMouseHandler(int numberofelementstoshow)
-{
-	for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != ((numberofelementstoshow == -1) ? optionlist_.end() : optionlist_.begin() + numberofelementstoshow); ++it)
-	{
-		(*it)->SetMouseHandler();
-	}
-
-	mouseactive_ = true;
 }

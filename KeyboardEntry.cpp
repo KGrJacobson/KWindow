@@ -2381,7 +2381,6 @@ void KeyboardEntry::ShowMenu()
 			kanjimenu_[Japanese_IME::ONYOMI].ShowMenu(onlist.size() + 1);
 		}
 
-
 		if (kunlist.size() != 0)
 		{	
 			kanjimenu_[Japanese_IME::KUNYOMI].ShowMenu(kunlist.size() + 1);

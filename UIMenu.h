@@ -27,12 +27,10 @@ public:
 	SDL_Rect GetMenuArea();
 	void ResizeList(unsigned int size, int fontsize);
 	void RemoveMouseHandler();
-	void AddMouseHandler(int numberofelementstoshow);
 private:
 	SDL_Rect menuarea_;
 	std::vector<UIButton*> optionlist_;
 	int buttonpressed_;
-	bool mouseactive_;
 };
 
 #endif //UI_MENU
