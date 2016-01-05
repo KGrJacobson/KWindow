@@ -12,7 +12,7 @@
 class UIButton 
 {
 public:
-	UIButton(SDL_Rect buttonarea, std::string text, bool istextcentered);
+	UIButton(SDL_Rect buttonarea, std::string text, int fontsize, bool istextcentered);
 	~UIButton();
 	int GetMouseEvent();
 	SDL_Rect GetButtonArea();

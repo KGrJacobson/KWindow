@@ -30,9 +30,9 @@ KeyboardEntry::KeyboardEntry()
 
 	//The first item of each menu is always the input given
 	jpime_.Init();
-	kanjimenu_[Japanese_IME::ONYOMI].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "O", true));
-	kanjimenu_[Japanese_IME::KUNYOMI].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "K", true));
-	kanjimenu_[Japanese_IME::NAME].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "N", true));
+	kanjimenu_[Japanese_IME::ONYOMI].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "O", 16, true));
+	kanjimenu_[Japanese_IME::KUNYOMI].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "K", 16, true));
+	kanjimenu_[Japanese_IME::NAME].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "N", 16, true));
 	CloseMenu();
 
 	hiraganamap_ = std::unordered_map<std::string, std::string>({
@@ -2313,6 +2313,8 @@ void KeyboardEntry::KeyDownInputJapaneseKatakana(const SDL_Event &e)
 
 void KeyboardEntry::CreateKanjiFindMenu(std::string kana)
 {
+	SDL_Rect currentmenuarea;
+
 	std::vector<std::string> onlist = jpime_.GetKanji(kana, Japanese_IME::ONYOMI);
 	std::vector<std::string> kunlist = jpime_.GetKanji(kana, Japanese_IME::KUNYOMI);
 	std::vector<std::string> namelist = jpime_.GetKanji(kana, Japanese_IME::NAME);
@@ -2320,9 +2322,9 @@ void KeyboardEntry::CreateKanjiFindMenu(std::string kana)
 	kanjimenu_[Japanese_IME::KUNYOMI].RenameListItem(0, kana);
 	kanjimenu_[Japanese_IME::NAME].RenameListItem(0, kana);
 
-	kanjimenu_[Japanese_IME::ONYOMI].ResizeList(onlist.size() + 1);
-	kanjimenu_[Japanese_IME::KUNYOMI].ResizeList(kunlist.size() + 1);
-	kanjimenu_[Japanese_IME::NAME].ResizeList(namelist.size() + 1);
+	kanjimenu_[Japanese_IME::ONYOMI].ResizeList(onlist.size() + 1, 16);
+	kanjimenu_[Japanese_IME::KUNYOMI].ResizeList(kunlist.size() + 1, 16);
+	kanjimenu_[Japanese_IME::NAME].ResizeList(namelist.size() + 1, 16);
 
 	int vectorindex = 1;
 	for (int element = 0; element != onlist.size(); ++element)
@@ -2330,6 +2332,14 @@ void KeyboardEntry::CreateKanjiFindMenu(std::string kana)
 		kanjimenu_[Japanese_IME::ONYOMI].RenameListItem(vectorindex, onlist[element]);
 		++vectorindex;
 	}
+
+	kanjimenu_[Japanese_IME::ONYOMI].SetXY(menux_, menuy_);
+	currentmenuarea = kanjimenu_[Japanese_IME::ONYOMI].GetMenuArea();
+
+	kanjimenu_[Japanese_IME::KUNYOMI].SetXY(currentmenuarea.x + currentmenuarea.w, menuy_);
+	currentmenuarea = kanjimenu_[Japanese_IME::KUNYOMI].GetMenuArea();
+
+	kanjimenu_[Japanese_IME::NAME].SetXY(currentmenuarea.x + currentmenuarea.w, menuy_);
 }
 
 void KeyboardEntry::ShowMenu()
@@ -2341,8 +2351,6 @@ void KeyboardEntry::ShowMenu()
 		std::vector<std::string> onlist = jpime_.GetKanji(tempstring_ + nexttempchar_, Japanese_IME::ONYOMI);
 		std::vector<std::string> kunlist = jpime_.GetKanji(tempstring_ + nexttempchar_, Japanese_IME::KUNYOMI);
 		std::vector<std::string> namelist = jpime_.GetKanji(tempstring_ + nexttempchar_, Japanese_IME::NAME);
-
-		SDL_Rect currentmenuarea;
 
 		if (kanjimenu_[Japanese_IME::ONYOMI].GetButtonPress() != -1 && kanjimenu_[Japanese_IME::ONYOMI].GetButtonPress() != 0)
 		{
@@ -2370,22 +2378,17 @@ void KeyboardEntry::ShowMenu()
 
 		if (onlist.size() != 0)
 		{
-			kanjimenu_[Japanese_IME::ONYOMI].SetXY(menux_, menuy_);
 			kanjimenu_[Japanese_IME::ONYOMI].ShowMenu(onlist.size() + 1);
-			currentmenuarea = kanjimenu_[Japanese_IME::ONYOMI].GetMenuArea();
 		}
 
 
 		if (kunlist.size() != 0)
-		{
-			kanjimenu_[Japanese_IME::KUNYOMI].SetXY(currentmenuarea.x + currentmenuarea.w, menuy_);
+		{	
 			kanjimenu_[Japanese_IME::KUNYOMI].ShowMenu(kunlist.size() + 1);
-			currentmenuarea = kanjimenu_[Japanese_IME::KUNYOMI].GetMenuArea();
 		}
 
 		if (namelist.size() != 0)
 		{
-			kanjimenu_[Japanese_IME::NAME].SetXY(currentmenuarea.x + currentmenuarea.w, menuy_);
 			kanjimenu_[Japanese_IME::NAME].ShowMenu(namelist.size() + 1);
 		}
 	}

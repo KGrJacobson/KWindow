@@ -25,6 +25,7 @@ UIMenu::~UIMenu()
 
 	optionlist_.clear();
 	ResetMenu();
+	mouseactive_ = false;
 }
 
 int UIMenu::GetButtonPress()
@@ -104,7 +105,7 @@ SDL_Rect UIMenu::GetMenuArea()
 	return menuarea_;
 }
 
-void UIMenu::ResizeList(unsigned int size)
+void UIMenu::ResizeList(unsigned int size, int fontsize)
 {
 	if (size > optionlist_.size())
 	{
@@ -112,16 +113,21 @@ void UIMenu::ResizeList(unsigned int size)
 
 		for (int newelement = 0; newelement < numberofnewelements; ++newelement)
 		{
-			optionlist_.push_back(new UIButton(optionlist_[0]->GetButtonArea(), "", true));
+			optionlist_.push_back(new UIButton(optionlist_[0]->GetButtonArea(), "", fontsize, true));
 		}
 	}
 }
 
 void UIMenu::RemoveMouseHandler()
 {
-	for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != optionlist_.begin(); ++it)
+	if (mouseactive_ == true)
 	{
-		(*it)->RemoveMouseHandler();
+		for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != optionlist_.begin(); ++it)
+		{
+			(*it)->RemoveMouseHandler();
+		}
+
+		mouseactive_ = false;
 	}
 }
 
@@ -131,4 +137,6 @@ void UIMenu::AddMouseHandler(int numberofelementstoshow)
 	{
 		(*it)->SetMouseHandler();
 	}
+
+	mouseactive_ = true;
 }

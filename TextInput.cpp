@@ -20,20 +20,13 @@ TextInput::TextInput()
 TextInput::~TextInput()
 {
 	DestroyTexture();
-	TTF_CloseFont(font_);
 	font_ = NULL;
 }
 
 int TextInput::Init(std::string ttffilepath, int fontsize)
 {
 	DestroyTexture();
-
-	font_ = TTF_OpenFont(ttffilepath.c_str(), fontsize);
-	if (font_ == NULL)
-	{
-		printf("Failed to load font SDL_ttf Error: %s\n", TTF_GetError());
-		return -1;
-	}
+	font_ = SDLUtility::GetFont(fontsize);
 
 	return 0;
 }

@@ -35,6 +35,21 @@ int SDLUtility::Init()
 		std::cout << "could not initialize TTF" << '\n';
 		return -1;
 	}
+	else
+	{
+		std::string fontfilepath = "meiryo.ttc";
+
+		tenptfont = TTF_OpenFont(fontfilepath.c_str(), 10);
+		twelveptfont = TTF_OpenFont(fontfilepath.c_str(), 12);
+		sixteenptfont = TTF_OpenFont(fontfilepath.c_str(), 16);
+		thirtytwoptfont = TTF_OpenFont(fontfilepath.c_str(), 32);
+
+		if (tenptfont == NULL || twelveptfont == NULL || sixteenptfont == NULL || thirtytwoptfont == NULL)
+		{
+			printf("Failed to load font SDL_ttf Error: %s\n", TTF_GetError());
+			return -1;
+		}
+	}
 
 	if (window == NULL || renderer == NULL)
 	{
@@ -70,6 +85,23 @@ void SDLUtility::Close()
 SDL_Renderer *SDLUtility::GetRenderer()
 {
 	return renderer;
+}
+
+TTF_Font *SDLUtility::GetFont(int fontsize)
+{
+	switch (fontsize)
+	{
+	case 10:
+		return tenptfont;
+	case 12:
+		return twelveptfont;
+	case 16:
+		return sixteenptfont;
+	case 32:
+		return thirtytwoptfont;
+	}
+
+	return tenptfont;
 }
 
 int SDLUtility::GetScreenWidth()

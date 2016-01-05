@@ -14,6 +14,11 @@
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 
+static TTF_Font *tenptfont;
+static TTF_Font *twelveptfont;
+static TTF_Font *sixteenptfont;
+static TTF_Font *thirtytwoptfont;;
+
 const static int SCREENW = 1500;
 const static int SCREENH = 750;
 
@@ -29,6 +34,7 @@ public:
 	static int Init();
 	static void Close();
 	static SDL_Renderer *GetRenderer();
+	static TTF_Font *GetFont(int fontsize);
 	static int GetScreenWidth();
 	static int GetScreenHeight();
 	static SDL_Rect GetAbsoluteRect(RelativeRect relativerect, SDL_Rect destrect);

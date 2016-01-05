@@ -13,8 +13,8 @@ UITab::UITab(SDL_Rect tabarea, std::string text, int tabnumber, UIMenu *contextm
 {
 	tabnumber_ = tabnumber;
 	tabarea_ = tabarea;
-	tabbutton_ = new UIButton(tabarea, text, false);
-	closebutton_ = new UIButton(SDL_Rect{ tabarea.x + tabarea.w - 20, tabarea.y, 20, UIElements::STANDARD_TAB_HEIGHT }, "X", true);
+	tabbutton_ = new UIButton(tabarea, text, UIElements::STANDARD_UI_FONT_SIZE, false);
+	closebutton_ = new UIButton(SDL_Rect{ tabarea.x + tabarea.w - 20, tabarea.y, 20, UIElements::STANDARD_TAB_HEIGHT }, "X", UIElements::STANDARD_UI_FONT_SIZE, true);
 	SetContextMenu(contextmenu);
 }
 
