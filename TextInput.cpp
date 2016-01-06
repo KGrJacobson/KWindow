@@ -23,7 +23,8 @@ TextInput::~TextInput()
 	font_ = NULL;
 }
 
-int TextInput::Init(std::string ttffilepath, int fontsize)
+//Reset texture and load font
+int TextInput::Init(int fontsize)
 {
 	DestroyTexture();
 	font_ = SDLUtility::GetFont(fontsize);
@@ -31,6 +32,8 @@ int TextInput::Init(std::string ttffilepath, int fontsize)
 	return 0;
 }
 
+//Creates high quality texture from given text.  This text is considered "final" for KeyboardEntry purposes and
+//will remove the texture from KeyboardEntry unpon being called.
 void TextInput::CreateTextureFromText(std::string text)
 {
 	if (text == "")
@@ -57,6 +60,7 @@ void TextInput::CreateTextureFromText(std::string text)
 	isfinal_ = true;
 }
 
+//Creates low quality texture from given text.  This text is not considered "final" for KeyboardEntry purposes.
 void TextInput::CreateQuickTextureFromText(std::string text)
 {
 	if (text == "")
@@ -103,6 +107,8 @@ std::string TextInput::GetCurrentText()
 	return currenttext_;
 }
 
+//Returns true if CreateTextureFromText is called and false if CreateQuickTextureFromText
+//is called.
 bool TextInput::GetFinal()
 {
 	return isfinal_;
@@ -128,6 +134,7 @@ int TextInput::TextWidth(std::string text)
 	return widthoftext;
 }
 
+//Text height is consistent based on the font size chosen.
 int TextInput::TextHeight()
 {
 	return TTF_FontHeight(font_);

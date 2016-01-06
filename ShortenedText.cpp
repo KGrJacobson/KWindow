@@ -14,7 +14,7 @@ ShortenenedText::ShortenenedText()
 	mousefunction_ = new MouseHandler();
 	mousefunction_->Init(SDL_Rect{ 0, 0, 0, 0 });
 	
-	fulltext_.Init("meiryo.ttc", UIElements::STANDARD_UI_FONT_SIZE);
+	fulltext_.Init(UIElements::STANDARD_UI_FONT_SIZE);
 }
 
 ShortenenedText::~ShortenenedText()
@@ -25,6 +25,8 @@ ShortenenedText::~ShortenenedText()
 	isshortened_ = false;
 }
 
+//Set the area in which the text is to be rendered.  Having the area set
+//will provide the width necessary to determine where to shorten the text.
 void ShortenenedText::SetArea(SDL_Rect textarea)
 {
 	mousefunction_->SetMouseArea(textarea);
@@ -41,6 +43,8 @@ void ShortenenedText::SetMouseActive()
 	InputHandler::AddMouseHandler(mousefunction_);
 }
 
+//Create a string of text that will fit in the width provided by SetArea.  SetArea
+//must be called before this, or an error will occur.
 void ShortenenedText::CreateFittedText(std::string text)
 {
 	fulltext_.CreateTextureFromText(text);
@@ -76,6 +80,8 @@ int ShortenenedText::GetMouseEvent()
 	return mousefunction_->GetEvent();
 }
 
+//Render the text on screen. SetArea and CreateFittedText must be called before
+//the texture is rendered to avoid error.
 void ShortenenedText::Show()
 {
 	SDL_Rect textarea = mousefunction_->GetMouseArea();

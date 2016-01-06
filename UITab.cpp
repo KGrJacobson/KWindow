@@ -9,6 +9,8 @@
 #include "UIElements.h"
 #include "UIButton.h"
 
+//Initalize the rendering area, MouseHandler area, text displayed on the tab, the tab position in its list,
+//and the context menu for the tab.
 UITab::UITab(SDL_Rect tabarea, std::string text, int tabnumber, UIMenu *contextmenu)
 {
 	tabnumber_ = tabnumber;
@@ -28,6 +30,9 @@ UITab::~UITab()
 	contextmenu_ = NULL;
 }
 
+//Renders the tab on screen and returns a return code if necessary.
+//Return codes details are listed in the enum in the UITab header file.
+//isselected denotes if the tab is currently active.
 int UITab::ShowTab(bool isselected)
 {
 	int returncode = NO_RETURN_VALUE;
@@ -59,6 +64,7 @@ int UITab::ShowTab(bool isselected)
 	return returncode;
 }
 
+//Alter the rendering area and MouseHandler area for the tab.
 void UITab::SetTabArea(SDL_Rect newarea)
 {
 	tabarea_ = newarea;
@@ -86,6 +92,8 @@ SDL_Rect UITab::GetTabArea()
 	return tabarea_;
 }
 
+//Return the text texture of the tab.  This is used to rename
+//the tab with KeyboardEntry.
 TextInput *UITab::GetTabText()
 {
 	return tabbutton_->GetText();
@@ -96,6 +104,8 @@ int UITab::GetContextMenuAction()
 	return contextmenu_->GetButtonPress();
 }
 
+//Return the context menu of the tab.  This is used to open
+//the context menu for this tab.
 UIMenu *UITab::GetContextMenu()
 {
 	return contextmenu_;

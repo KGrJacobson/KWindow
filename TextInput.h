@@ -11,7 +11,7 @@ class TextInput
 public:
 	TextInput();
 	~TextInput();
-	int Init(std::string ttffilepath, int fontsize);
+	int Init(int fontsize);
 	void CreateTextureFromText(std::string text);
 	void CreateQuickTextureFromText(std::string text);
 	SDL_Texture *GetTexture();

@@ -9,6 +9,9 @@
 #include "UIButton.h"
 #include "UIElements.h"
 
+//Init creates the vectors used for preset RBG colors and preset
+//colors for each of the window layout elements.  See the UIElements
+//header file for more information on the contents of the vectors.
 void UIElements::Init()
 {
 	standardcolorvector_ = std::vector<SDL_Color>{
@@ -131,11 +134,16 @@ void UIElements::CloseLayouts()
 	colorlayouts_.clear();
 }
 
+//Set a new color layout based on the enum provided.  See the UIElements
+//header file for UI_Color_Layouts to see the possible layouts.
 void UIElements::SetColorLayout(int colorlayout)
 {
 	currentcolorlayout_ = colorlayouts_[colorlayout];
 }
 
+//Returns the RGBA color based on the enums provided.  Enums are from the 
+//Standard_Colors and Standard_Alpha_Values listed in the UIElements
+//header file.
 SDL_Color UIElements::GetSDLColor(int color, int alphavalue)
 {
 	SDL_Color colortoreturn = standardcolorvector_[color];
@@ -144,6 +152,9 @@ SDL_Color UIElements::GetSDLColor(int color, int alphavalue)
 	return colortoreturn;
 }
 
+//Returns the RGBA color based on the enums provided.  Enums are from the 
+//Standard_UI_Element_Colors and Standard_Alpha_Values listed in the UIElements
+//header file.  The UI Elements Colors are specific to the current layout set.
 SDL_Color UIElements::GetUIElementColor(int uielement, int alphavalue)
 {
 	SDL_Color colortoreturn = currentcolorlayout_->at(uielement);
@@ -161,6 +172,11 @@ SDL_Color UIElements::InvertColor(SDL_Color color) {
 	return colortoreturn;
 }
 
+//Set the current Menu to the one provided.  Only one bar menu
+//or context menu can be set at a time in the program.
+//menu is the menu to be shown.
+//x, y are the coordinates to set the menu at.  If passed null
+//  values, the menu is placed on the mouse cursor.
 void UIElements::SetMenu(UIMenu *menu, int *x, int *y)
 {
 	if (Global_UI_Element::currentmenu_ != NULL)
@@ -188,6 +204,10 @@ void UIElements::SetMenu(UIMenu *menu, int *x, int *y)
 	}
 }
 
+//Set the hovertext to be the one provided in the argument.  Only
+//one hovertext may be active at any time.
+//text is the hovertext to show.  Null is a possible value for this
+//argument.
 void UIElements::SetHoverText(ShortenenedText *text)
 {
 	Global_UI_Element::hovertext_ = text;
@@ -203,6 +223,8 @@ ShortenenedText *UIElements::GetHoverText()
 	return Global_UI_Element::hovertext_;
 }
 
+//Display the current hovertext.  Hovertext exists in the Global_UI_Element
+//namespace in the UIElements header file.
 void UIElements::ShowUIHoverText(TextInput *text)
 {
 	int x = -1;
@@ -217,6 +239,7 @@ void UIElements::ShowUIHoverText(TextInput *text)
 	SDLUtility::PostText(text, x + 2, y + 2);
 }
 
+//Render a UIButton on screen.
 void UIElements::ShowUIButton(UIButton *button)
 {
 	SDL_Rect showrect = button->GetButtonArea();
@@ -254,6 +277,9 @@ void UIElements::ShowUIButton(UIButton *button)
 	}
 }
 
+//Render a UIButton as a tiny button on screen similar in size to the close
+//buttons in standard windows.  Most "Tiny Buttons" will only have one character
+//of text to render.
 void UIElements::ShowUITinyButton(UIButton *button)
 {
 	SDL_Rect showrect = button->GetButtonArea();
@@ -281,6 +307,7 @@ void UIElements::ShowUITinyButton(UIButton *button)
 		);
 }
 
+//Render a UIButton as a tab on screen.
 void UIElements::ShowUITab(UIButton *button, bool isselected)
 {
 	SDL_Rect showrect = button->GetButtonArea();
@@ -303,6 +330,7 @@ void UIElements::ShowUITab(UIButton *button, bool isselected)
 		);
 }
 
+//Render a UIButton as a member of a menu on screen.
 void UIElements::ShowUIContextMenu(UIButton *button)
 {
 	SDL_Rect showrect = button->GetButtonArea();
