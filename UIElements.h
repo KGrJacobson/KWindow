@@ -23,6 +23,10 @@ namespace Global_UI_Element
 	static ShortenenedText *hovertext_ = NULL;
 }
 
+//UIElements defines the standard size of Elements and color layout used by the program, including 
+//standard RGB colors and specific coloring of all possible UI Elements as defined by the current	
+//layout.  The class also handles rendering UI Elements and regulating specific universal UI Elements 
+//defined in Global_UI_Element.
 class UIElements 
 {
 public:

@@ -23,7 +23,10 @@ namespace Input_Handler_Inputs
 	static KeyboardEntry *keyboardentry_ = NULL;
 }
 
-
+//InputHandler handles manipulation of the keyboard and mouse.  This class is essentially a way to filter 
+//the SDL Event list into a usable form.  InputHandler accomplishes this by iterating through the event list 
+//(HandleEvents) and manipulating the proper MouseHandler from a list of all active handlers in the program, 
+//or running any key presses through the single instance of KeyboardEntry that exists in the program.  
 class InputHandler
 {
 public:

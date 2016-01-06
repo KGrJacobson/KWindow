@@ -9,9 +9,13 @@
 #include "TextInput.h"
 #include "UIMenu.h"
 
+//KeyboardEntry recieves key input from the SDL Event list and transforms it into a usable string based on the current IME.
+//Additionally, the class handles universal key macros that are active at all times during the program.
 class KeyboardEntry
 {
 public:
+	//A list of key macros that is universal to the program and may or may not have some effect
+	//when entered at any point during the program runtime.
 	enum Key_Macro_Return_Code
 	{
 		NO_MACRO,
@@ -22,6 +26,8 @@ public:
 		CREATE_KANJI_TABLE
 	};
 
+	//The existing Input Method Editors.  The variable currentime_ is defined with a value
+	//from this enum.
 	enum Key_IME
 	{
 		ENGLISH,

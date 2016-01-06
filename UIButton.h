@@ -9,6 +9,9 @@
 #include "SDLUtility.h"
 #include "TextInput.h"
 
+//UIButton defines a mouse sensitive area that works exactly like the classic UI Element.  This class
+//works very similarly to a MouseHandler object, but has an associated text texture and can be rendered
+//easily with various functions in UI Elements.
 class UIButton 
 {
 public:

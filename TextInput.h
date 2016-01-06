@@ -6,6 +6,8 @@
 #include "SDL.h"
 #include "SDL_ttf.h"
 
+//TextInput creates a texture of a string of text provided.  This class does not provide the area the
+//text will be rendered to, just the texture itself.
 class TextInput
 {
 public:

@@ -22,6 +22,9 @@ static TTF_Font *thirtytwoptfont;;
 const static int SCREENW = 1500;
 const static int SCREENH = 750;
 
+//An area that is dependent on another areas coordinates.  Each variable in the struct
+//is a percentage of the destination rectangle, listed in ".00" form.  For example, if
+//the rectangle is half the size of the destination rectangle, w would be ".5".
 struct RelativeRect {
 	double x;
 	double y;
@@ -29,6 +32,8 @@ struct RelativeRect {
 	double h;
 };
 
+//A number of functions that provide a layer of abstraction between SDL.  Most are related
+//to rendering basic shapes, text or images.
 class SDLUtility {
 public:
 	static int Init();

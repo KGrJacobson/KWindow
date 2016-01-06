@@ -7,6 +7,9 @@
 #include "MouseHandler.h"
 #include "TextInput.h"
 
+//A subclass of TextInput that creates a rendering of text that can fit in a given
+//width.  A preview of the full text is shown when the mouse is hovering over the
+//area the text is rendered to.
 class ShortenenedText : public TextInput
 {
 public:

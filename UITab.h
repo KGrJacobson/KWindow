@@ -9,6 +9,8 @@
 #include "UIButton.h"
 #include "UIMenu.h"
 
+//The UITab is very similar to a UI Button, but has functionality specific to existing in a TabBar.
+//UITab is functional, but unfinished due to the current lack of a TabBar tab handling class.
 class UITab {
 public:
 	enum UI_Tab_Return_Values

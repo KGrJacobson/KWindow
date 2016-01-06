@@ -6,7 +6,8 @@
 #include "DebugText.h"
 #include "SDLUtility.h"
 
-enum mousestate
+//A list of possible mouse events.
+enum Mouse_State
 {
 	NO_MOUSE_STATE = -1,
 	MOUSEOVER,
@@ -16,6 +17,8 @@ enum mousestate
 	RIGHT_BUTTON_UP
 };
 
+//Very similar to a struct, the MouseHandler class holds information necessary to creating an area sensitive
+//to mouse events.  See InputHandler for more information on how to use the MouseHandler.
 class MouseHandler {
 public:
 	void Init(SDL_Rect initialmousearea);

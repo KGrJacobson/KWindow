@@ -8,6 +8,8 @@
 #include "MouseHandler.h"
 #include "UIButton.h"
 
+//UIMenu defines a Menu UI Element that includes standard menu bars, context menus and dropdown menus.
+//This class is about to go through a revamp.
 class UIMenu
 {
 public:

@@ -6,6 +6,7 @@
 
 #include "DebugText.h"
 
+//Japanese IME defines a number of vectors and hash maps related to transliterating ASCII text to the Japanese equivalent.
 class Japanese_IME
 {
 public:
