@@ -11,6 +11,7 @@
 #include "UIElements.h"
 #include "UIMenu.h"
 
+//Initialize class members and create the kanji dropdown menu kanjimenu_.
 KeyboardEntry::KeyboardEntry()
 {
 	isshift_ = false;
@@ -24,7 +25,6 @@ KeyboardEntry::KeyboardEntry()
 	kanjimenu_.push_back(UIMenu());  //Kunyomi
 	kanjimenu_.push_back(UIMenu());  //Names
 
-	//Menu starts off screen to prevent an invisible Mouse Handler from existing in the active screen.
 	menux_ = 0;
 	menuy_ = 0;
 
@@ -167,6 +167,7 @@ KeyboardEntry::~KeyboardEntry()
 	nexttempchar_ = "";
 }
 
+//Add a character to the currenttext_ string and create a new texture from it.
 void KeyboardEntry::InsertCharacter(char character)
 {
 	if (character >= 'a' && character <= 'z' && isshift_ == true)
@@ -227,6 +228,8 @@ void KeyboardEntry::InsertCharacter(char character)
 			currenttexttexture_->CreateQuickTextureFromText(currenttext_ + '[' + tempstring_ + nexttempchar_ + ']');
 }
 
+//Add a string to the currenttext_ string and create a new texture from it.  The InsertCharacter counterpart is for user
+//input from a keyboard, while this function is intended for larger strings such as those from the clipboard.
 void KeyboardEntry::InsertString(std::string string)
 {
 	currenttext_ = currenttext_ + string;
@@ -238,11 +241,15 @@ void KeyboardEntry::InsertString(std::string string)
 			currenttexttexture_->CreateQuickTextureFromText(currenttext_ + '[' + tempstring_ + nexttempchar_ + ']');
 }
 
+//Delete the last character of currenttext_.  Mainly used when the user presses the backspace button.
 void KeyboardEntry::DeleteCharacter()
 {
 	if (currenttext_ != "")
 	{
-		currenttext_.pop_back();
+		//if ()
+		//	currenttext_ = currenttext_.substr(0, currenttext_.length() - 3);
+		//else
+			currenttext_.pop_back();
 	}
 
 	if (currenttexttexture_ != NULL)
@@ -252,6 +259,13 @@ void KeyboardEntry::DeleteCharacter()
 			currenttexttexture_->CreateQuickTextureFromText(currenttext_ + '[' + tempstring_ + nexttempchar_ + ']');
 }
 
+//Adds a new texture for keyboard input and finalizes the current texture if possible.
+//text is the text texture to receive user input.  Any text contained in the text is immediately deleted as well as the
+//  texture itself.  It is possible to pass null so no keyboard input is received.
+//textx is the x value of the destination rectangle for the text texture.  This is used to place the kanji dropdown menu in
+//  Japanese IME mode.
+//textlowesty is the y value of the lowest height (y + height) of the destination rectangle for the text texture.  
+//  This is used to place the kanji dropdown menu in Japanese IME mode.
 void KeyboardEntry::SetTexture(TextInput *text, int textx, int textlowesty)
 {
 	menux_ = textx;
@@ -274,6 +288,7 @@ void KeyboardEntry::SetCTRL(bool isdown)
 	isctrl_ = isdown;
 }
 
+//Create a high quality rendering of currenttext_ and reset the input variables.
 void KeyboardEntry::FinalizeCurrentText()
 {
 	if (currenttexttexture_ != NULL)
@@ -284,6 +299,9 @@ void KeyboardEntry::FinalizeCurrentText()
 	CloseMenu();
 }
 
+//Add the character represented by current user key press as dictated by the IME to currenttext_.
+//Returned is a key macro if one has been accessed.
+//e is the global SDL event list.
 int KeyboardEntry::KeyDownInput(const SDL_Event &e)
 {
 	char chartoadd = 0;
@@ -397,6 +415,7 @@ int KeyboardEntry::KeyDownInput(const SDL_Event &e)
 	return NO_MACRO;
 }
 
+//Return the character that represents the key pressed on the keyboard for the English IME.
 char KeyboardEntry::KeyDownInputEnglish(const SDL_Event &e)
 {
 	switch (e.key.keysym.sym)
@@ -464,6 +483,10 @@ char KeyboardEntry::KeyDownInputEnglish(const SDL_Event &e)
 	return 0;
 }
 
+//Determine if the last key pressed can be transformed into the proper Japanese hiragana or add the current key
+//pressed to the "on deck" string nexttempchar_ and/or tempstring_ to be potentially processed in
+//the next key press.  Pressing Enter or Return while in Japanese IME mode will add the tempstring_
+//and nexttempchar_ to currenttext_.
 void KeyboardEntry::KeyDownInputJapaneseHiragana(const SDL_Event &e)
 {
 	if (ismenuactive_ == true)
@@ -1001,6 +1024,10 @@ void KeyboardEntry::KeyDownInputJapaneseHiragana(const SDL_Event &e)
 	}
 }
 
+//Determine if the last key pressed can be transformed into the proper Japanese katakana or add the current key
+//pressed to the "on deck" string nexttempchar_ and/or tempstring_ to be potentially processed in
+//the next key press.  Pressing Enter or Return while in Japanese IME mode will add the tempstring_
+//and nexttempchar_ to currenttext_.
 void KeyboardEntry::KeyDownInputJapaneseKatakana(const SDL_Event &e)
 {
 	switch (e.key.keysym.sym)
@@ -2311,6 +2338,10 @@ void KeyboardEntry::KeyDownInputJapaneseKatakana(const SDL_Event &e)
 	}
 }
 
+//Pressing tab while entering hiragana will pull up a dropdown menu showing all possible kanji that
+//is represented by the kana entered.  The kana used is the combined combined tempstring_ and nexttempchar_
+//and is represented in the text by the left and right square brackets around the text ([ and ] characters).
+//kana is the combined tempstring_ and nexttempchar_.
 void KeyboardEntry::CreateKanjiFindMenu(std::string kana)
 {
 	SDL_Rect currentmenuarea;
@@ -2342,6 +2373,8 @@ void KeyboardEntry::CreateKanjiFindMenu(std::string kana)
 	kanjimenu_[Japanese_IME::NAME].SetXY(currentmenuarea.x + currentmenuarea.w, menuy_);
 }
 
+//Show the dropdown kanji menu if it is active and add the kanji to the text if the user has
+//selected a button.
 void KeyboardEntry::ShowMenu()
 {
 	bool closemenu = false;
@@ -2404,6 +2437,8 @@ void KeyboardEntry::CloseMenu()
 	ismenuactive_ = false;
 }
 
+//Reset shift/CTRL macros if the user releases the shift/CTRL button.
+//e is the global SDL Event list.
 void KeyboardEntry::KeyUpInput(const SDL_Event &e)
 {
 	switch (e.key.keysym.sym)

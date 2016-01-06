@@ -5,8 +5,11 @@
 #include "DebugText.h"
 #include "JPIME.h"
 
+//Create values for the hash map class members.
 void Japanese_IME::Init()
 {
+	//The hash map for kana matching an existing onyomi.  All hash maps are sorted by kana order and lists are
+	//sorted by frequncy of kanji in newspapers.
 	kanjionmap_ = std::unordered_map < std::string, std::vector<std::string>>({
 		/*
 		{ u8"", { u8"", u8"", u8"", u8"", u8"", u8"", u8"", u8"", u8"", u8"", u8"", u8"", u8"", u8"", u8"", u8"", u8"", u8"", u8"", u8"",
@@ -92,6 +95,7 @@ void Japanese_IME::Init()
 		{ u8"‚ª‚Β",{ u8"" } },
 		{ u8"‚ª‚ρ", { u8"³", u8"ά", u8"Ϋ", u8"έ", u8"η", u8"β", u8"θ", u8"ζ", u8"α", u8"ή", u8"ιμ", u8"γ", u8"ε", u8"ί", u8"ΰ", u8"δ" } },
 		{ u8"‚¬", { u8"‹c", u8"‹^", u8"‹`", u8"‹Z", u8"‹V", u8"‹U", u8"‹]", u8"ς", u8"‹\", u8"‹X", u8"‹B", u8"‹Y", u8"‘΄", u8"‹[", u8"ι°", u8"‹_", u8"βE" } },
+		{ u8"‚¬‚ε‚¤",{ u8"s", u8"‹Ζ", u8"`", u8"‹Β", u8"‹Γ", u8"‹Ε", u8"‹Δ" } },
 		{ u8"‚°", { u8"O", u8"‰Ί", u8"‰π", u8"‰Δ", u8"‰ΰ", u8"‹Y", u8"‰ε", u8"‰Ϊ" } },
 		{ u8"‚°‚ρ", { u8"Ύ", u8"»", u8"΄", u8"³", u8"Έ", u8"ΐ", u8"±", u8"µ", u8"Ή", u8"•F", u8"™", u8"Ί", u8"α", u8"¶", u8"·", u8"", u8"™χ", u8"¥" } },
 		{ u8"‚°‚Β", { u8"", u8"’Τ" } },
@@ -99,7 +103,6 @@ void Japanese_IME::Init()
 			u8"α" } },
 		{ u8"‚²‚¤",{ u8"‡", u8"‹Ζ", u8"‹­", u8"i", u8"y", u8"†", u8"‹½", u8"‹", u8"„", u8"‰", u8"", u8"‰ ", u8"", u8"" } },
 		{ u8"‚²‚ρ", { u8"‹ΰ", u8"Ύ", u8" ", u8"µ", u8"‹Ξ", u8"‹Σ" } },
-		{ u8"‚¬‚ε‚¤", { u8"s", u8"‹Ζ", u8"`", u8"‹Β", u8"‹Γ", u8"‹Ε", u8"‹Δ" } },
 
 		//s
 		{ u8"‚³", { u8"μ", u8"Έ", u8"Δ", u8"·", u8"²", u8"¶", u8"’ƒ", u8"»", u8"½", u8"΄", u8"Ό", u8"Α", u8"Ή", u8"µ", u8"Ώ", u8"™Ν", u8"βΐ" } },
@@ -286,6 +289,8 @@ void Japanese_IME::Init()
 		{ u8"‚ν", { u8"a", u8"b", u8"”c", u8"E", u8"”i", u8"`" } }
 	});
 
+	//The hash map for kana matching an existing kunyomi.  All hash maps are sorted by kana order and lists are
+	//sorted by frequncy of kanji in newspapers.
 	kanjikunmap_ = std::unordered_map < std::string, std::vector<std::string>>({
 		/* last 18
 		{ u8"",{ u8"" } },
@@ -357,6 +362,8 @@ void Japanese_IME::Init()
 		//w
 	});
 
+	//The hash map for kana matching an existing name.  All hash maps are sorted by kana.  The name lists are
+	//sorted by the frequency in which names are encountered.
 	kanjinamemap_ = std::unordered_map < std::string, std::vector<std::string>>({
 		//a
 		//i
@@ -382,6 +389,9 @@ void Japanese_IME::Init()
 	});
 }
 
+//GetKanji returns a vector of strings (kanji or names) using the kana argument as a key for the hash map specified.
+//kana is the kana of the kanji being searched for.
+//whichlist is an enum that specifies which of the kanji maps are going to be searched.  See Kanji_Menu in the JPIME header.
 std::vector<std::string> Japanese_IME::GetKanji(std::string kana, int whichlist)
 {
 	switch (whichlist)

@@ -1,7 +1,7 @@
+#include "SDL.h"
+
 #include "MouseHandler.h"
 #include "SDLUtility.h"
-#include "SDL.h"
-#include "DebugText.h"
 
 void MouseHandler::Init(SDL_Rect initialmousearea)
 {

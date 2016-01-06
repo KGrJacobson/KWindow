@@ -11,6 +11,7 @@
 #include "SDLUtility.h"
 #include "UIElements.h"
 
+//Initialize SDL and create window/renderer/font.  Returns 0 if successful and -1 otherwise.
 int SDLUtility::Init()
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -62,7 +63,6 @@ int SDLUtility::Init()
 		return -1;
 	}
 
-
 	UIElements::Init();
 	InputHandler::Init();
 
@@ -87,6 +87,8 @@ SDL_Renderer *SDLUtility::GetRenderer()
 	return renderer;
 }
 
+//return a pointer to the TTF font based on the fontsize argument.  10pt font
+//is the default.
 TTF_Font *SDLUtility::GetFont(int fontsize)
 {
 	switch (fontsize)
@@ -114,6 +116,10 @@ int SDLUtility::GetScreenHeight()
 	return SCREENH;
 }
 
+//Returns a SDL_Rect containing the absolute coordinates and width/height of the rectangle based
+//on the destination rectangle (destrect) provided.  This is for areas that do not have a definite
+//position on screen and are position based on another rectangle.  See RelativeRect in SDLUtility
+//header for more information.
 SDL_Rect SDLUtility::GetAbsoluteRect(RelativeRect relativerect, SDL_Rect destrect)
 {
 	SDL_Rect absolutecoordinatesrect {
@@ -140,6 +146,8 @@ void SDLUtility::UpdateScreen()
 	SDL_RenderPresent(renderer);
 }
 
+//Render an Image object as an image on the screen.  This PostImage stretchs the image
+//to completely cover the screen.
 void SDLUtility::PostImage(Image *img, int x, int y)
 {
 	SDL_Rect destrect{ x, y, img->GetWidth(), img->GetHeight() };
@@ -147,6 +155,7 @@ void SDLUtility::PostImage(Image *img, int x, int y)
 	SDL_RenderCopy(renderer, img->GetTexture(), NULL, &destrect);
 }
 
+//Render a TextInput object as text on screen at x, y coordinates.
 void SDLUtility::PostText(TextInput *text, int x, int y)
 {
 	SDL_Rect destrect{ x, y, text->GetWidth(), text->GetHeight() };
@@ -159,6 +168,9 @@ void SDLUtility::PostTexture(SDL_Texture *texure, int x, int y)
 	SDL_RenderCopy(renderer, texure, NULL, NULL);
 }
 
+//Render an Image object as an image on the screen.  This PostImage does not stretch
+//the image and just posts it "as is".
+//sourcerect is the SDL_Rect representing the area of the image.
 void SDLUtility::PostImage(Image *img, int x, int y, SDL_Rect sourcerect)
 {
 	SDL_Rect destrect{ x, y, sourcerect.w, sourcerect.h };
@@ -166,6 +178,9 @@ void SDLUtility::PostImage(Image *img, int x, int y, SDL_Rect sourcerect)
 	SDL_RenderCopy(renderer, img->GetTexture(), &sourcerect, &destrect);
 }
 
+//Render a colored rectangle on screen.
+//rect is the area of the rectangle to render.
+//color is the RBGA value of the rectangle.
 void SDLUtility::CreateSquare(SDL_Rect rect, SDL_Color color)
 {
 	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
@@ -173,6 +188,10 @@ void SDLUtility::CreateSquare(SDL_Rect rect, SDL_Color color)
 	SDL_RenderFillRect(renderer, &rect);
 }
 
+//Render a colored rectangle with a border on screen.
+//rect is the area of the rectangle to render.
+//bordercolor is the RBGA value of the border.
+//innercolor is the RBGA value of the rectangle.
 void SDLUtility::CreateBorderedRect(SDL_Rect rect, SDL_Color bordercolor, SDL_Color innercolor)
 {
 	SDL_SetRenderDrawColor(renderer, innercolor.r, innercolor.g, innercolor.b, innercolor.a);
@@ -182,6 +201,8 @@ void SDLUtility::CreateBorderedRect(SDL_Rect rect, SDL_Color bordercolor, SDL_Co
 	SDL_RenderDrawRect(renderer, &rect);
 }
 
+//Returns true if the mouse is within the area provided.
+//mousecheckarea is the area to check the mouse in.
 bool SDLUtility::IsMouseActive(SDL_Rect mousecheckarea)
 {
 	int mousex = -1;

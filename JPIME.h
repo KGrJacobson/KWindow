@@ -9,6 +9,8 @@
 class Japanese_IME
 {
 public:
+	//Kanji_Menu is a list of flags to use with the whichlist argument of the GetKanji function.
+	//Each enum corresponds to one of the hash map class members.
 	enum Kanji_Menu
 	{
 		ONYOMI,
