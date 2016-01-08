@@ -11,20 +11,24 @@
 #include "UIButton.h"
 #include "UIElements.h"
 
-UIMenu::UIMenu()
+UIMenu::UIMenu(int menuwidth, int menuheight, int fontsize)
 {
+	menuwidth_ = menuwidth;
+	menuheight_ = menuheight;
+	fontsize_ = fontsize;
+
+	mainmenuarea_ = new MouseHandler();
+	additionalmenuarea_ = NULL;
+
 	ResetMenu();
 }
 
 UIMenu::~UIMenu()
 {
-	for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != optionlist_.begin(); ++it)
-	{
-		delete (*it);
-	}
-
-	optionlist_.clear();
-	ResetMenu();
+	delete mainmenuarea_;
+	mainmenuarea_ = NULL;
+	delete additionalmenuarea_;
+	additionalmenuarea_ = NULL;
 }
 
 int UIMenu::GetButtonPress()
@@ -37,61 +41,73 @@ int UIMenu::GetButtonPress()
 void UIMenu::ResetMenu()
 {
 	buttonpressed_ = NO_CONTEXT_MENU_BUTTONS_PRESSED;
-	menuarea_ = SDL_Rect{ 0, 0, 0, 0 };
-
 	RemoveMouseHandler();
 }
 
-//Add a new button to the menu.
-//newitem is the button to add.  The button should be dynamically
-//  allocated and deletion is handled by the menu.
-void UIMenu::AddListItem(UIButton *newitem)
+void UIMenu::SetSizeOfMenu(int sizeofmenu)
 {
-	optionlist_.push_back(newitem);
-	newitem->RemoveMouseHandler();
+	if (sizeofmenu <= STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN)
+	{
+		mainmenuarea_->SetMouseArea(SDL_Rect{ 0, 0, menuwidth_, menuheight_ * sizeofmenu });
+		InputHandler::RemoveMouseHandler(mainmenuarea_);
+
+		if (additionalmenuarea_ != NULL)
+		{
+			delete additionalmenuarea_;
+			additionalmenuarea_ = NULL;
+		}
+	}
+	else
+	{
+		mainmenuarea_->SetMouseArea(SDL_Rect{ 
+			0, 
+			0, 
+			menuwidth_ * (sizeofmenu / STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN),
+			menuheight_ * STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN 
+		});
+		InputHandler::RemoveMouseHandler(mainmenuarea_);
+
+		if (additionalmenuarea_ == NULL)
+			additionalmenuarea_ = new MouseHandler();
+	
+		additionalmenuarea_->SetMouseArea(SDL_Rect{
+			0,
+			0,
+			menuwidth_,
+			menuheight_ * (sizeofmenu % STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN)
+		});
+		InputHandler::RemoveMouseHandler(additionalmenuarea_);
+	}
+
+	for (int elements = optiontext_.size(); elements < sizeofmenu; ++elements)
+	{
+		TextInput newtext;
+		newtext.Init(fontsize_);
+		optiontext_.push_back(newtext);
+	}
 }
 
-//Alter the text of a button based on the string provided.
-//button is the index of the button to be changed.
-//newname is a UTF8 string.
-void UIMenu::RenameListItem(int button, std::string newname)
+void UIMenu::RenameMenuIndex(int indexnumber, std::string newname)
 {
-	optionlist_[button]->SetButtonText(newname);
+	optiontext_[indexnumber].CreateTextureFromText(newname);
 }
+
 
 //SetXY sets the rendering area of the button to exist on the screen
 //and sets the MouseHandler of each button active.  Always call ResetMenu
 //or RemoveMouseHandler before calling this function a second time.
 void UIMenu::SetXY(int x, int y)
 {
-	int nextx = x;
-	int nexty = y;
-	int menuelementwidth = optionlist_[0]->GetButtonArea().w;
-	int numberofelements = 0;
+	SDL_Rect currentmousearea = mainmenuarea_->GetMouseArea();
+	mainmenuarea_->SetMouseArea(SDL_Rect{ x, y, currentmousearea.w, currentmousearea.h });
+	InputHandler::AddMouseHandler(mainmenuarea_);
 
-	for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != optionlist_.end(); ++it)
+	if (additionalmenuarea_ != NULL)
 	{
-		if (numberofelements >= STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN)
-		{
-			nextx = nextx + menuelementwidth;
-			nexty = y;
-			numberofelements = 0;
-		}
-
-		(*it)->SetButtonCoordinates(nextx, nexty);
-		nexty = nexty + STANDARD_CONTEXT_MENU_HEIGHT;
-
-		(*it)->SetMouseHandler();
-
-		++numberofelements;
+		currentmousearea = additionalmenuarea_->GetMouseArea();
+		additionalmenuarea_->SetMouseArea(SDL_Rect{ x + mainmenuarea_->GetMouseArea().w, y, currentmousearea.w, currentmousearea.h } );
+		InputHandler::AddMouseHandler(additionalmenuarea_);
 	}
-
-	menuarea_ = SDL_Rect{
-		x,
-		y,
-		(optionlist_.size() < STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN) ? menuelementwidth : 1 + static_cast<int>(static_cast<double>(optionlist_.size()) / STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN ) * menuelementwidth,
-		(optionlist_.size() < STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN) ? nexty - y : STANDARD_CONTEXT_MENU_HEIGHT * STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN
-	};
 }
 
 //Render the menu on screen
@@ -99,49 +115,87 @@ void UIMenu::SetXY(int x, int y)
 //  use -1 to display all the buttons.
 void UIMenu::ShowMenu(int numberofelementstoshow)
 {
-	int currentbutton = 0;
-	for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != ((numberofelementstoshow == -1) ? optionlist_.end() : optionlist_.begin() + numberofelementstoshow); ++it)
+	SDLUtility::CreateSquare(mainmenuarea_->GetMouseArea(), UIElements::GetUIElementColor(UIElements::CONTEXT_MENU_BACKGROUND_COLOR, UIElements::SOLID_COLOR));
+	if (numberofelementstoshow > STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN && numberofelementstoshow % STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN != 0)
+		SDLUtility::CreateSquare(additionalmenuarea_->GetMouseArea(), UIElements::GetUIElementColor(UIElements::CONTEXT_MENU_BACKGROUND_COLOR, UIElements::SOLID_COLOR));
+	
+	int selectedelement = -1;
+	int mousex = -1;
+	int mousey = -1;
+	SDL_GetMouseState(&mousex, &mousey);
+	switch (mainmenuarea_->GetEvent())
 	{
-		UIElements::ShowUIContextMenu((*it));
+	case MOUSEOVER:
+		mousex = mousex - mainmenuarea_->GetMouseArea().x;
+		mousey = mousey - mainmenuarea_->GetMouseArea().y;
+		selectedelement = (mousey / menuheight_) + ((mousex / menuwidth_) * STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN);
+		break;
+	case LEFT_BUTTON_UP:
+		mousex = mousex - mainmenuarea_->GetMouseArea().x;
+		mousey = mousey - mainmenuarea_->GetMouseArea().y;
+		buttonpressed_ = (mousey / menuheight_) + ((mousex / menuwidth_) * STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN);
+		break;
+	}
 
-		if ((*it)->GetMouseEvent() == LEFT_BUTTON_UP)
+	if (additionalmenuarea_ != NULL && additionalmenuarea_->GetEvent() != NO_MOUSE_STATE)
+	{
+		switch (additionalmenuarea_->GetEvent())
 		{
-			buttonpressed_ = currentbutton;
+		case MOUSEOVER:
+			mousex = mousex - additionalmenuarea_->GetMouseArea().x;
+			mousey = mousey - additionalmenuarea_->GetMouseArea().y;
+			selectedelement = ((mousey / menuheight_) + ((mousex / menuwidth_) * STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN)) + ((mainmenuarea_->GetMouseArea().w / menuwidth_) * STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN);
+			break;
+		case LEFT_BUTTON_UP:
+			mousex = mousex - additionalmenuarea_->GetMouseArea().x;
+			mousey = mousey - additionalmenuarea_->GetMouseArea().y;
+			buttonpressed_ = ((mousey / menuheight_) + ((mousex / menuwidth_) * STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN)) + ((mainmenuarea_->GetMouseArea().w / menuwidth_) * STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN);
+			break;
+		}
+	}
+
+	for (int currentelement = 0; currentelement < ((numberofelementstoshow == -1) ? optiontext_.size() : numberofelementstoshow); ++currentelement)
+	{
+		if (currentelement == selectedelement)
+		{
+			SDLUtility::CreateSquare(
+				SDL_Rect{ 
+					mainmenuarea_->GetMouseArea().x + ((currentelement / STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN) * menuwidth_),
+					mainmenuarea_->GetMouseArea().y + ((currentelement % STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN) * menuheight_),
+					menuwidth_,
+					menuheight_
+				}, 
+				UIElements::GetUIElementColor(UIElements::CONTEXT_MENU_ELEMENT_PRESSED_COLOR, UIElements::SOLID_COLOR));
 		}
 
-		++currentbutton;
+		SDLUtility::PostText(
+			&optiontext_[currentelement], 
+			mainmenuarea_->GetMouseArea().x + ((currentelement / STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN) * menuwidth_),
+			mainmenuarea_->GetMouseArea().y + ((currentelement % STANDARD_CONTEXT_MENU_NUMBER_OF_ELEMENTS_IN_COLUMN) * menuheight_)
+			);
 	}
 }
 
 SDL_Rect UIMenu::GetMenuArea()
 {
-	return menuarea_;
-}
-
-//Create a number of new buttons for the menu based on the argument provided.
-//New buttons have their size based on the first button of the menu and are initialized
-//with no text.  This function does not delete buttons if the size is smaller than the 
-//current size.
-//size is the minimum amount of buttons the list should have.
-//fontsize is the size of the font for new buttons.
-void UIMenu::ResizeList(unsigned int size, int fontsize)
-{
-	if (size > optionlist_.size())
+	if (additionalmenuarea_ != NULL)
 	{
-		int numberofnewelements = size - optionlist_.size();
+		SDL_Rect mainarea = mainmenuarea_->GetMouseArea();
+		SDL_Rect addarea = additionalmenuarea_->GetMouseArea();
 
-		for (int newelement = 0; newelement < numberofnewelements; ++newelement)
-		{
-			optionlist_.push_back(new UIButton(optionlist_[0]->GetButtonArea(), "", fontsize, true));
-		}
+		return SDL_Rect{ mainarea.x, mainarea.y, mainarea.w + addarea.w, mainarea.h };
 	}
+
+	return mainmenuarea_->GetMouseArea();
 }
 
 //Deactivate mouse functionality for the menu.
 void UIMenu::RemoveMouseHandler()
 {
-	for (std::vector<UIButton*>::iterator it = optionlist_.begin(); it != optionlist_.end(); ++it)
+	InputHandler::RemoveMouseHandler(mainmenuarea_);
+
+	if (additionalmenuarea_ != NULL)
 	{
-		(*it)->RemoveMouseHandler();
+		InputHandler::RemoveMouseHandler(additionalmenuarea_);
 	}
 }

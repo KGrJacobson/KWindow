@@ -184,7 +184,6 @@ void UIElements::SetMenu(UIMenu *menu, int *x, int *y)
 
 	if (menu != NULL)
 	{
-
 		Global_UI_Element::currentmenu_ = menu;
 
 		if (x != NULL && y != NULL)
@@ -200,6 +199,9 @@ void UIElements::SetMenu(UIMenu *menu, int *x, int *y)
 	}
 	else
 	{
+		if (Global_UI_Element::currentmenu_ != NULL)
+			Global_UI_Element::currentmenu_->ResetMenu();
+		
 		Global_UI_Element::currentmenu_ = menu;
 	}
 }

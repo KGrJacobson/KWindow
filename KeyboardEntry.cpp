@@ -21,18 +21,14 @@ KeyboardEntry::KeyboardEntry()
 	tempstring_ = "";
 	nexttempchar_ = "";
 
-	kanjimenu_.push_back(UIMenu());  //Onyomi
-	kanjimenu_.push_back(UIMenu());  //Kunyomi
-	kanjimenu_.push_back(UIMenu());  //Names
+	kanjimenu_.push_back(new UIMenu(UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT, 16));  //Onyomi
+	kanjimenu_.push_back(new UIMenu(UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT, 16));  //Kunyomi
+	kanjimenu_.push_back(new UIMenu(UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT, 16));  //Names
 
 	menux_ = 0;
 	menuy_ = 0;
 
-	//The first item of each menu is always the input given
 	jpime_.Init();
-	kanjimenu_[Japanese_IME::ONYOMI].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "O", 16, true));
-	kanjimenu_[Japanese_IME::KUNYOMI].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "K", 16, true));
-	kanjimenu_[Japanese_IME::NAME].AddListItem(new UIButton(SDL_Rect{ menux_, menuy_, UIElements::STANDARD_TINY_BUTTON_WIDTH * 2, UIElements::STANDARD_TINY_BUTTON_HEIGHT }, "N", 16, true));
 	CloseMenu();
 
 	hiraganamap_ = std::unordered_map<std::string, std::string>({
@@ -2349,28 +2345,28 @@ void KeyboardEntry::CreateKanjiFindMenu(std::string kana)
 	std::vector<std::string> onlist = jpime_.GetKanji(kana, Japanese_IME::ONYOMI);
 	std::vector<std::string> kunlist = jpime_.GetKanji(kana, Japanese_IME::KUNYOMI);
 	std::vector<std::string> namelist = jpime_.GetKanji(kana, Japanese_IME::NAME);
-	kanjimenu_[Japanese_IME::ONYOMI].RenameListItem(0, kana);
-	kanjimenu_[Japanese_IME::KUNYOMI].RenameListItem(0, kana);
-	kanjimenu_[Japanese_IME::NAME].RenameListItem(0, kana);
 
-	kanjimenu_[Japanese_IME::ONYOMI].ResizeList(onlist.size() + 1, 16);
-	kanjimenu_[Japanese_IME::KUNYOMI].ResizeList(kunlist.size() + 1, 16);
-	kanjimenu_[Japanese_IME::NAME].ResizeList(namelist.size() + 1, 16);
+	kanjimenu_[Japanese_IME::ONYOMI]->SetSizeOfMenu(onlist.size());
+	kanjimenu_[Japanese_IME::KUNYOMI]->SetSizeOfMenu(kunlist.size());
+	kanjimenu_[Japanese_IME::NAME]->SetSizeOfMenu(namelist.size());
 
-	int vectorindex = 1;
-	for (int element = 0; element != onlist.size(); ++element)
+	for (int onelement = 0; onelement != onlist.size(); ++onelement)
 	{
-		kanjimenu_[Japanese_IME::ONYOMI].RenameListItem(vectorindex, onlist[element]);
-		++vectorindex;
+		kanjimenu_[Japanese_IME::ONYOMI]->RenameMenuIndex(onelement, onlist[onelement]);
 	}
 
-	kanjimenu_[Japanese_IME::ONYOMI].SetXY(menux_, menuy_);
-	currentmenuarea = kanjimenu_[Japanese_IME::ONYOMI].GetMenuArea();
+	kanjimenu_[Japanese_IME::ONYOMI]->SetXY(menux_, menuy_);
+	currentmenuarea = kanjimenu_[Japanese_IME::ONYOMI]->GetMenuArea();
 
-	kanjimenu_[Japanese_IME::KUNYOMI].SetXY(currentmenuarea.x + currentmenuarea.w, menuy_);
-	currentmenuarea = kanjimenu_[Japanese_IME::KUNYOMI].GetMenuArea();
+	for (int kunelement = 0; kunelement != kunlist.size(); ++kunelement)
+	{
+		kanjimenu_[Japanese_IME::KUNYOMI]->RenameMenuIndex(kunelement, kunlist[kunelement]);
+	}
 
-	kanjimenu_[Japanese_IME::NAME].SetXY(currentmenuarea.x + currentmenuarea.w, menuy_);
+	kanjimenu_[Japanese_IME::KUNYOMI]->SetXY(currentmenuarea.x + currentmenuarea.w, menuy_);
+	currentmenuarea = kanjimenu_[Japanese_IME::KUNYOMI]->GetMenuArea();
+
+	kanjimenu_[Japanese_IME::NAME]->SetXY(currentmenuarea.x + currentmenuarea.w, menuy_);
 }
 
 //Show the dropdown kanji menu if it is active and add the kanji to the text if the user has
@@ -2385,43 +2381,43 @@ void KeyboardEntry::ShowMenu()
 		std::vector<std::string> kunlist = jpime_.GetKanji(tempstring_ + nexttempchar_, Japanese_IME::KUNYOMI);
 		std::vector<std::string> namelist = jpime_.GetKanji(tempstring_ + nexttempchar_, Japanese_IME::NAME);
 
-		if (kanjimenu_[Japanese_IME::ONYOMI].GetButtonPress() != -1 && kanjimenu_[Japanese_IME::ONYOMI].GetButtonPress() != 0)
+		if (kanjimenu_[Japanese_IME::ONYOMI]->GetButtonPress() != -1)
 		{
 			tempstring_ = "";
 			nexttempchar_ = "";
-			InsertString(onlist[kanjimenu_[Japanese_IME::ONYOMI].GetButtonPress() - 1]);
+			InsertString(onlist[kanjimenu_[Japanese_IME::ONYOMI]->GetButtonPress()]);
 			closemenu = true;
 		}
 		
-		if (kanjimenu_[Japanese_IME::KUNYOMI].GetButtonPress() != -1 && kanjimenu_[Japanese_IME::KUNYOMI].GetButtonPress() != 0)
+		if (kanjimenu_[Japanese_IME::KUNYOMI]->GetButtonPress() != -1)
 		{
 			tempstring_ = "";
 			nexttempchar_ = "";
-			InsertString(onlist[kanjimenu_[Japanese_IME::KUNYOMI].GetButtonPress() - 1]);
+			InsertString(kunlist[kanjimenu_[Japanese_IME::KUNYOMI]->GetButtonPress()]);
 			closemenu = true;
 		}
 		
-		if (kanjimenu_[Japanese_IME::NAME].GetButtonPress() != -1 && kanjimenu_[Japanese_IME::NAME].GetButtonPress() != 0)
+		if (kanjimenu_[Japanese_IME::NAME]->GetButtonPress() != -1)
 		{
 			tempstring_ = "";
 			nexttempchar_ = "";
-			InsertString(onlist[kanjimenu_[Japanese_IME::NAME].GetButtonPress() - 1]);
+			InsertString(namelist[kanjimenu_[Japanese_IME::NAME]->GetButtonPress()]);
 			closemenu = true;
 		}
 
 		if (onlist.size() != 0)
 		{
-			kanjimenu_[Japanese_IME::ONYOMI].ShowMenu(onlist.size() + 1);
+			kanjimenu_[Japanese_IME::ONYOMI]->ShowMenu(onlist.size());
 		}
 
 		if (kunlist.size() != 0)
 		{	
-			kanjimenu_[Japanese_IME::KUNYOMI].ShowMenu(kunlist.size() + 1);
+			kanjimenu_[Japanese_IME::KUNYOMI]->ShowMenu(kunlist.size());
 		}
 
 		if (namelist.size() != 0)
 		{
-			kanjimenu_[Japanese_IME::NAME].ShowMenu(namelist.size() + 1);
+			kanjimenu_[Japanese_IME::NAME]->ShowMenu(namelist.size());
 		}
 	}
 
@@ -2431,9 +2427,9 @@ void KeyboardEntry::ShowMenu()
 
 void KeyboardEntry::CloseMenu()
 {
-	kanjimenu_[Japanese_IME::ONYOMI].ResetMenu();
-	kanjimenu_[Japanese_IME::KUNYOMI].ResetMenu();
-	kanjimenu_[Japanese_IME::NAME].ResetMenu();
+	kanjimenu_[Japanese_IME::ONYOMI]->ResetMenu();
+	kanjimenu_[Japanese_IME::KUNYOMI]->ResetMenu();
+	kanjimenu_[Japanese_IME::NAME]->ResetMenu();
 	ismenuactive_ = false;
 }
 

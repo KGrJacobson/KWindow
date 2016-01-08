@@ -63,7 +63,7 @@ private:
 	Japanese_IME jpime_;
 	std::unordered_map<std::string, std::string> hiraganamap_;
 	std::unordered_map<std::string, std::string> katakanamap_;
-	std::vector<UIMenu> kanjimenu_;
+	std::vector<UIMenu*> kanjimenu_;
 	int menux_;
 	int menuy_;
 	bool ismenuactive_;
