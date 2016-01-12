@@ -22,6 +22,7 @@ public:
 	int GetMouseEvent();
 	void Show();
 	void ShowFullHoverText();
+	std::string GetFullText();
 private:
 	int maxtextwidth_;
 	MouseHandler *mousefunction_;

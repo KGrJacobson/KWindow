@@ -93,3 +93,8 @@ void ShortenenedText::ShowFullHoverText()
 {
 	UIElements::ShowUIHoverText(&fulltext_);
 }
+
+std::string ShortenenedText::GetFullText()
+{
+	return fulltext_.GetCurrentText();
+}
